@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "claude-code-plugins",
+  "name": "anandyandawang-plugins",
   "description": "Personal Claude Code plugin marketplace. One folder = one plugin.",
   "owner": {
     "name": "anandyandawang",

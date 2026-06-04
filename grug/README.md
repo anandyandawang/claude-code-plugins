@@ -34,7 +34,7 @@ to stop grug, disable or uninstall the plugin (`/plugin`). that all.
 
 ```
 /plugin marketplace add anandyandawang/claude-code-plugins
-/plugin install grug@claude-code-plugins
+/plugin install grug@anandyandawang-plugins
 ```
 
 complexity very, very bad.
