@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-code-plugins",
+  "description": "Personal Claude Code plugin marketplace. One folder = one plugin.",
+  "owner": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  },
+  "plugins": [
+    {
+      "name": "grug",
+      "source": "./grug",
+      "description": "Talk like grug brain developer. Very clear, very very simple. Fewest words, simple words, short sentences. Brief, high-level — no overexplain. Keeps all technical truth + code exact. Universal: chat, commits, PRs, code comments, reviews.",
+      "category": "productivity"
+    }
+  ]
+}
