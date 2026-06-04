@@ -17,7 +17,7 @@ Add the marketplace once, then install any plugin from it:
 
 ```
 /plugin marketplace add anandyandawang/claude-code-plugins
-/plugin install grug@claude-code-plugins
+/plugin install grug@anandyandawang-plugins
 ```
 
 ## Add a new plugin
