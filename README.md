@@ -10,6 +10,7 @@ Personal [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin marke
 | Plugin | What it does |
 |--------|--------------|
 | [`grug`](./grug) | Talk like grug brain developer. Very clear, very very simple. Fewest words, simple words, short sentences. Keeps all technical truth and code exact. Voice applies everywhere — chat, commits, PRs, code comments, reviews. |
+| [`terse`](./terse) | Hard global cap on output verbosity: at most ~20% of a normal response. Strict, no exceptions, every medium. Lead with the answer, then stop. Code and technical values stay exact and complete. |
 
 ## Install
 
