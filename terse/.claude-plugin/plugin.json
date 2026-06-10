@@ -1,24 +1,12 @@
 {
   "name": "terse",
   "description": "Hard global cap on output verbosity: every response at most ~20% of what Claude would normally write. Strict rule, no exceptions. Applies to every medium — chat, commits, PRs, code comments, reviews, logs, docs. Lead with the answer, then stop. Code and technical values stay exact and complete.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "anandyandawang",
     "url": "https://github.com/anandyandawang"
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/terse-activate.js\"",
-            "timeout": 5,
-            "statusMessage": "Engaging terse mode..."
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "hooks": [

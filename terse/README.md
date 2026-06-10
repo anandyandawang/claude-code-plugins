@@ -19,18 +19,31 @@ terse puts a hard global cap on Claude's output verbosity: every response is at 
 
 ## How it works
 
-Two hooks:
+- **Output style** (`output-styles/terse.md`) — the ruleset, applied directly to the system
+  prompt. `force-for-plugin: true` means it activates automatically whenever the plugin is
+  enabled — no `/config` step. `keep-coding-instructions: true` keeps Claude Code's default
+  engineering behavior intact; only the verbosity changes. The system prompt isn't subject
+  to context compaction, so the rules can't drift out of a long session.
+- **UserPromptSubmit hook** (`hooks/terse-reinforce.js`) — re-asserts the cap every turn as
+  a cheap anchor against drift.
+- **Skill** (`skills/terse/SKILL.md`) — `/terse` re-affirms the cap on demand mid-session.
 
-- **SessionStart** (`hooks/terse-activate.js`) — injects the ruleset from `skills/terse/SKILL.md`.
-- **UserPromptSubmit** (`hooks/terse-reinforce.js`) — re-asserts the cap every turn so long
-  sessions don't drift back to full verbosity.
+`output-styles/terse.md` is the single source of truth for the full ruleset.
 
-`skills/terse/SKILL.md` is the single source of truth. Edit there, both hooks follow.
+Note: because the output style is forced, it overrides any output style you selected
+yourself while the plugin is enabled. That's the point — no exceptions.
 
 ## Turning it off
 
 Plugin active = terse active. No off-switch.
-To stop, disable or uninstall the plugin (`/plugin`).
+To stop, disable or uninstall the plugin (`/plugin`). Your previous output style returns.
+
+## Where it applies
+
+Works in the CLI, the desktop app (local sessions), and the VS Code / JetBrains extensions —
+they all share the same `~/.claude` plugin configuration. Cloud sessions (claude.ai/code,
+desktop cloud sessions) don't load user plugins; only repo-committed `.claude/settings.json`
+hooks run there.
 
 ## Install
 
@@ -38,3 +51,5 @@ To stop, disable or uninstall the plugin (`/plugin`).
 /plugin marketplace add anandyandawang/claude-code-plugins
 /plugin install terse@anandyandawang-plugins
 ```
+
+Takes effect on the next session (or after `/clear`) — the system prompt is read at session start.
