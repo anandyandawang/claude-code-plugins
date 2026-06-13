@@ -1,0 +1,95 @@
+@@ greet
+ /\_/\
+( o.o )   codecat reporting for duty. let's build.
+ > ^ <
+
+@@ greet
+   /\_/\
+  ( =^.^= )   *stretch*  ready when you are, human.
+   (")_(")
+
+@@ greet
+ /\_/\
+(='.'=)   a wild codecat appears! it will supervise.
+ (")(")
+
+@@ greet
+ /\_/\
+( o_o )   fresh session, fresh whiskers. go go go.
+ > ^ <
+
+@@ resume
+ /\_/\
+( -.- )   oh, you're back. i kept your chair warm.
+ > ^ <
+
+@@ resume
+ /\_/\
+( ^.^ )   welcome back! i did not nap. (i napped.)
+ (")(")
+
+@@ idle
+ |\      _,,,---,,_
+ /,`.-'`'    -.  ;-;;,_       ...the cat is loafing...
+|,4-  ) )-,_..;\ (  `'-'       it dreams your code compiles.
+'---''(_/--'  `-'\_)
+
+@@ idle
+ /\_/\      ~ ZOOMIES ~
+( >w< )     the cat sprinted across the keyboard:
+c(")(")     asdkfjghqwiopzz
+
+@@ idle
+ /\_/\
+( -_- )   the cat reviewed your code. it has no notes.
+ > ^ <
+
+@@ idle
+ /\_/\
+( o.o )   *paw*   ...something fell off the desk.
+ > ^ <  ->  o     it held eye contact the whole time.
+
+@@ idle
+ /\_/\
+( =_= )   perfect loaf achieved. do not disturb.
+ (")(")
+
+@@ idle
+ /\_/\
+( ^.^ )   the cat left you a gift:  a small,
+ (")(")     defeated bug. (you're welcome)
+
+@@ commit
+ /\_/\
+(=^w^=)   *purr*  commit #{N} shipped. good human.
+ (")_(")
+
+@@ commit
+ /\_/\    [ #{N} ]
+( ^o^ )    another commit in the box. very tidy.
+ > ^ <
+
+@@ commit
+ /\_/\
+(=^.^=)   {N} commits and counting. the cat is pleased.
+ (")(")
+
+@@ push
+ /\_/\
+( ^_^ )b   pushed! off it sails into the cloud.
+ (")(")
+
+@@ push
+ /\_/\
+(='.'=)   pushed to remote. the cat approves this voyage.
+ > ^ <
+
+@@ farewell
+ /\_/\
+( -.- )   nap time. codecat out. see you soon, human.
+ (")(")
+
+@@ farewell
+ /\_/\
+( u.u )   *yawn*  session over. the cat curls up. bye.
+ (")(")
