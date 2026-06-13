@@ -18,6 +18,12 @@
       "source": "./terse",
       "description": "Hard global cap on output verbosity: at most ~20% of a normal response. Strict, no exceptions. Every medium — chat, commits, PRs, code comments, reviews, logs, docs. Lead with the answer, then stop. Code and technical values stay exact and complete.",
       "category": "productivity"
+    },
+    {
+      "name": "codecat",
+      "source": "./codecat",
+      "description": "An ASCII-art cat companion that lives in your coding session. It pads in on its own — greets you when a session starts, loafs and does zoomies between turns, celebrates your git commits and pushes, and curls up at session end. Pure art delivered via hooks; never changes how Claude talks. Frequency is tunable.",
+      "category": "fun"
     }
   ]
 }
