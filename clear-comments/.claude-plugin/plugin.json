@@ -1,0 +1,9 @@
+{
+  "name": "clear-comments",
+  "description": "Write code comments in anandyandawang's house style. Comment sparingly — the code says what, a comment says why. Vocabulary is `// TODO:` (with the unblocking condition, and the issue-tracker key in parens when the project uses one) and `// Note:` (an intentional, non-obvious decision); no FIXME/HACK/XXX, no `/* */` block comments, no commented-out code, no restating the line below. Backtick every code identifier. Doc comments are a mini-spec for public interfaces and complex services; inline `//` annotates mapping tables with the source system's label; tests get scenario/section banners. Applies automatically whenever Claude writes or edits code comments.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  }
+}
