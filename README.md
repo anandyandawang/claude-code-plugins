@@ -13,6 +13,7 @@ Personal [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin marke
 | [`terse`](./terse) | Hard global cap on output verbosity: at most ~20% of a normal response. Strict, no exceptions, every medium. Lead with the answer, then stop. Code and technical values stay exact and complete. |
 | [`codecat`](./codecat) | 🐱 An ASCII-art cat companion that pads into your session on its own — greets you on session start, loafs/does zoomies between turns, celebrates git commits and pushes, and curls up at session end. Pure art via hooks; never changes how Claude talks. Frequency is tunable. |
 | [`clear-pr`](./clear-pr) | Write PR titles and descriptions in anandyandawang's house style: an imperative title (like a commit subject, no ticket prefix) and a single `## What?` that leads with the change then the why. Link evidence, backtick code, name tradeoffs, size to the change. Auto-applies when opening a PR; `/pr` drafts one for the current branch. |
+| [`clear-comments`](./clear-comments) | Write code comments in the `paywithextend` house style: comment sparingly (the code says what, a comment says why), `// TODO(EX-####):` with the unblocking condition, `// Note:` for intentional surprises, KDoc as a mini-spec, mapping rows tagged with the source label. No `/* */`, no FIXME/HACK, no commented-out code. Auto-applies when writing comments; `/comments` audits the current branch. |
 
 ## Install
 
