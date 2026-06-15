@@ -34,7 +34,7 @@
     {
       "name": "clear-comments",
       "source": "./clear-comments",
-      "description": "Write code comments in anandyandawang's house style (used across paywithextend repos like astrada-integrator, wex-integrator, and fis-integrator). Comment sparingly — the code says what, a comment says why. Vocabulary is `// TODO(EX-####):` (always with the unblocking condition) and `// Note:` (an intentional, non-obvious decision); no FIXME/HACK/XXX, no `/* */` block comments, no commented-out code, no restating the line below. Backtick every code identifier. KDoc is a mini-spec for public ports and complex services; inline `//` annotates mapping tables with the source system's label; tests get scenario/section banners. Auto-applies when writing code comments; run /comments to audit the comments on the current branch.",
+      "description": "Write code comments in anandyandawang's house style (used across paywithextend repos like astrada-integrator, wex-integrator, and fis-integrator). Comment sparingly — the code says what, a comment says why. Vocabulary is `// TODO(EX-####):` (always with the unblocking condition) and `// Note:` (an intentional, non-obvious decision); no FIXME/HACK/XXX, no `/* */` block comments, no commented-out code, no restating the line below. Backtick every code identifier. KDoc is a mini-spec for public ports and complex services; inline `//` annotates mapping tables with the source system's label; tests get scenario/section banners. Auto-applies when writing code comments.",
       "category": "productivity"
     }
   ]

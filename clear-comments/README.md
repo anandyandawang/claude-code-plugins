@@ -33,12 +33,9 @@ The full spec, with worked examples drawn from the real repos, lives in
 - **Skill** (`skills/clear-comments/clear-comments`) — auto-applies whenever Claude writes or edits a
   code comment, KDoc, or TODO, so comments come out in this style without being asked. Invoke it directly
   with `/clear-comments` to re-affirm the style mid-session.
-- **Command** (`/comments`) — audits the comments **added on the current branch**: scores each against
-  the style (redundant, wrong marker, weak TODO, should-be-a-Note, missing backticks, restating *what*),
-  shows the findings with suggested rewrites, and applies them **only after you confirm**.
 
-No hooks, nothing always-on — like `clear-pr`, clear-comments only speaks up when there are comments to
-write.
+Skill-only — no command, no hooks, nothing always-on. clear-comments just shapes how comments come out
+whenever there are comments to write.
 
 ## install
 
@@ -47,9 +44,9 @@ write.
 /plugin install clear-comments@anandyandawang-plugins
 ```
 
-Then either let it apply automatically as you write code, or run `/comments` on a feature branch.
+Then let it apply automatically as you write code.
 
 ## tweak the style
 
-Edit [`skills/clear-comments/SKILL.md`](./skills/clear-comments/SKILL.md). Both the skill and the
-`/comments` command read from it, so one edit changes everything.
+Edit [`skills/clear-comments/SKILL.md`](./skills/clear-comments/SKILL.md) — the single source of truth
+for the style.

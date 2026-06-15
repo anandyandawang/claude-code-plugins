@@ -10,8 +10,8 @@ description: >
   enumerated state/transition table where it earns its keep, `@param` only when non-obvious. Inline `//`
   annotates mapping tables with the source system's own label. Tests get scenario/section banners and
   step narration. Voice: first person plural, plain, honest about temp hacks and working assumptions.
-  Use whenever writing or editing code comments, KDoc/Javadoc, or TODOs, or when the user runs
-  /comments, says "comment this", "add a comment", "clean up the comments", or references comment style.
+  Use whenever writing or editing code comments, KDoc/Javadoc, or TODOs, or when the user says
+  "comment this", "add a comment", "clean up the comments", or references comment style.
 ---
 
 # clear-comments — house style for code comments
