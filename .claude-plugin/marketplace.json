@@ -24,6 +24,12 @@
       "source": "./codecat",
       "description": "An ASCII-art cat companion that lives in your coding session. It pads in on its own — greets you when a session starts, loafs and does zoomies between turns, celebrates your git commits and pushes, and curls up at session end. Pure art delivered via hooks; never changes how Claude talks. Frequency is tunable.",
       "category": "fun"
+    },
+    {
+      "name": "clearpr",
+      "source": "./clearpr",
+      "description": "Write PR titles and descriptions in anandyandawang's house style (used across paywithextend repos like wex-integrator and fis-integrator). Title: [EX-####] lowercase imperative summary. Body: a `## What?` that leads with the change then the why, an optional `## Examples / Screenshots?`, and a closing `## Jira Link`. Lead with what + why, link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; run /pr to draft one for the current branch.",
+      "category": "productivity"
     }
   ]
 }
