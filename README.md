@@ -12,6 +12,7 @@ Personal [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin marke
 | [`grug`](./grug) | Talk like grug brain developer. Very clear, very very simple. Fewest words, simple words, short sentences. Keeps all technical truth and code exact. Voice applies everywhere — chat, commits, PRs, code comments, reviews. |
 | [`terse`](./terse) | Hard global cap on output verbosity: at most ~20% of a normal response. Strict, no exceptions, every medium. Lead with the answer, then stop. Code and technical values stay exact and complete. |
 | [`codecat`](./codecat) | 🐱 An ASCII-art cat companion that pads into your session on its own — greets you on session start, loafs/does zoomies between turns, celebrates git commits and pushes, and curls up at session end. Pure art via hooks; never changes how Claude talks. Frequency is tunable. |
+| [`clear-pr`](./clear-pr) | Write PR titles and descriptions in the `paywithextend` house style: `[EX-####]` imperative title, a `## What?` that leads with the change then the why, optional `## Examples / Screenshots?`, closing `## Jira Link`. Link evidence, backtick code, name tradeoffs, size to the change. Auto-applies when opening a PR; `/pr` drafts one for the current branch. |
 
 ## Install
 
