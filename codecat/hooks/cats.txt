@@ -194,3 +194,60 @@ c(")(")     asdkfjghqwiopzz
  /\_/\
 ( ^.^ )   yarn defeated. tidy? no. happy? yes.
  ~oOo~
+
+@@@ sleep
+ /\_/\
+( -.- )   the cat powers down.
+ (")(")
+~~~
+ /\_/\   z
+( u.u )
+ (")(")
+~~~
+ /\_/\   z Z
+( u.u )
+ (")(")
+~~~
+ /\_/\  z Z z
+( -.- )   ...dreaming of green CI.
+ (")(")
+
+@@@ type
+ /\_/\
+( o.o )   the cat is helping. (it is not helping.)
+ (")(")
+[=======]
+~~~
+ /\_/\
+( o.o )
+c(")(")
+[=======]
+~~~
+ /\_/\
+( o.o )
+ (")(")c
+[==KLAK=]
+~~~
+ /\_/\
+( ^.^ )   shipped it. probably.
+ (")(")
+[=======]
+
+@@@ box
+ /\_/\      .------.
+( o.o )     |      |   ooh, a box.
+ > ^ <      '------'
+~~~
+ /\_/\   .------.
+( o.o )  |      |   ...measuring the fit...
+ > ^ <   '------'
+~~~
+   .------.
+   |/\_/\ |   if it fits...
+   |(o.o) |
+   '------'
+~~~
+   .------.
+   |/\_/\ |   ...it sits.
+   |(=.=) |
+   '------'
