@@ -5,8 +5,8 @@ description: >
   imperative summary, like a git commit subject (no ticket prefix). Body is a single `## What?` section
   that leads with the change then the why. Lead with what + why, link evidence instead of inlining it,
   backtick every code identifier, be honest about tradeoffs, and size the description to the change. Use
-  whenever opening a pull request or drafting/editing a PR description, or when the user runs /pr, says
-  "write the PR", or "PR description".
+  whenever opening a pull request or drafting/editing a PR description, or when the user says
+  "write the PR" or "PR description".
 ---
 
 # clear-pr — house style for PR descriptions

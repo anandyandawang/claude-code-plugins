@@ -20,14 +20,13 @@ The full spec, with worked examples for both a trivial and a substantive PR, liv
 
 ## what clear-pr does
 
-- **Skill** (`skills/clear-pr/clear-pr`) — auto-applies whenever Claude opens a PR or drafts/edits a PR
-  body, so descriptions come out in this format without being asked. Invoke it directly with `/clear-pr`
-  to re-affirm the format mid-session.
-- **Command** (`/pr`) — drafts a title + body for the **current branch**: reads the branch's commits and
-  diff, writes the description in the format, shows it to you, and opens the PR **only after you confirm**
-  (never auto-creates).
+clear-pr is a single **skill** (`skills/clear-pr/clear-pr`) — it auto-applies whenever Claude opens a PR
+or drafts/edits a PR body, so descriptions come out in this format without being asked. Invoke it
+directly with `/clear-pr` to apply the format on demand — e.g. to draft a title + body for the current
+branch.
 
-No hooks, nothing always-on — unlike `grug`/`terse`, clear-pr only speaks up when there's a PR to write.
+No hooks, no command, nothing always-on — unlike `grug`/`terse`, clear-pr only speaks up when there's a
+PR to write.
 
 ## install
 
@@ -36,9 +35,9 @@ No hooks, nothing always-on — unlike `grug`/`terse`, clear-pr only speaks up w
 /plugin install clear-pr@anandyandawang-plugins
 ```
 
-Then either let it apply automatically when you open a PR, or run `/pr` on a feature branch.
+Then let it apply automatically when you open a PR, or invoke `/clear-pr` to apply the format on demand.
 
 ## tweak the format
 
-Edit [`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md). Both the skill and the `/pr` command read
-from it, so one edit changes everything.
+Edit [`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md) — the skill reads from it, so one edit
+changes the format everywhere.
