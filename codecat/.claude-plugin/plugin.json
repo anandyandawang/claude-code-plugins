@@ -1,7 +1,7 @@
 {
   "name": "codecat",
-  "description": "An ASCII-art cat companion that lives in your coding session. It automatically pads in with a hand-drawn cat — greets you when a session starts, loafs and does zoomies between turns, celebrates your git commits and pushes, and curls up at session end. Pure art delivered via hooks; never changes how Claude talks. Frequency is tunable.",
-  "version": "0.1.0",
+  "description": "An ASCII-art cat companion that lives in your coding session. It automatically pads in with a hand-drawn cat — greets you when a session starts, plays short flipbook animations and loafs between turns, celebrates your git commits and pushes, and curls up at session end. Greetings can pop a desktop notification so you don't miss them. Pure art delivered via hooks; never changes how Claude talks. Frequency is tunable.",
+  "version": "0.2.0",
   "author": {
     "name": "anandyandawang",
     "url": "https://github.com/anandyandawang"

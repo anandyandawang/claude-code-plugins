@@ -93,3 +93,104 @@ c(")(")     asdkfjghqwiopzz
  /\_/\
 ( u.u )   *yawn*  session over. the cat curls up. bye.
  (")(")
+
+# ---------------------------------------------------------------------------
+# ANIMATIONS (@@@). frames are separated by a line of `~~~` and play one frame
+# per idle appearance, so the cat seems to move over successive turns. keep
+# frames the same shape where you want clean motion. don't make any single
+# frame-line just tildes (that's the frame separator).
+# ---------------------------------------------------------------------------
+
+@@@ blink
+ /\_/\
+( o.o )   the cat is watching your cursor.
+ > ^ <
+~~~
+ /\_/\
+( -.- )
+ > ^ <
+~~~
+ /\_/\
+( o.o )   ...still watching.
+ > ^ <
+
+@@@ tailwag
+ /\_/\
+( =w= )   loaf mode engaged. tail on standby.
+ (")(")__/
+~~~
+ /\_/\
+( =w= )
+ (")(")\__
+~~~
+ /\_/\
+( =w= )   *swish*
+ (")(")__/
+~~~
+ /\_/\
+( =w= )
+ (")(")\__
+
+@@@ walk
+/\_/\
+(=^.^=)   off on patrol...
+(")(")
+~~~
+   /\_/\
+  (=^.^=)
+   (")(")
+~~~
+      /\_/\
+     (=^.^=)
+      (")(")
+~~~
+         /\_/\   *patrol complete*
+        (=^.^=)
+         (")(")
+
+@@@ loaf
+ /\_/\
+( o.o )   initiating loaf sequence.
+ > ^ <
+~~~
+ /\_/\
+( -.- )   ...folding the paws under...
+ (")(")
+~~~
+ /\_/\
+( =_= )   loaf achieved. do not disturb.
+[######]
+
+@@@ zoomies
+ /\_/\
+( o.o )   ...the cat senses something...
+ > ^ <
+~~~
+ /\_/\  !!
+( oVo )   ears back. engines hot.
+ > ^ <
+~~~
+ ~ZOOM~  /\_/\
+  blur  ( >w< )=3
+       c(")(")
+~~~
+ /\_/\
+( o_o )   ...how did the cat get up there?
+ > ^ <
+
+@@@ yarn
+ /\_/\
+( o.o )    oOo   a ball of yarn appears.
+ > ^ <
+~~~
+ /\_/\
+( >w< )    oOo   target acquired.
+ > ^ <
+~~~
+ /\_/\ *pounce*
+(=>w<=)oOo
+ > ^ <
+~~~
+ /\_/\
+( ^.^ )   yarn defeated. tidy? no. happy? yes.
+ ~oOo~
