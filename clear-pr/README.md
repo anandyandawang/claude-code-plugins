@@ -13,8 +13,7 @@ exact, and size the description to the change.
 **Body** — a single `## What?` section: what the PR does, then **why**, immediately. Prose for a simple
 change, bullets for a multi-part one. Code identifiers in backticks. Evidence linked (traces, Slack,
 API docs, CI runs, related PRs, follow-up tickets); the decisive error/payload inlined only when the
-change hinges on it. Any screenshot or before/after is folded in inline, with a one-line caption.
-Tradeoffs named honestly.
+change hinges on it. Tradeoffs named honestly.
 
 The full spec, with worked examples for both a trivial and a substantive PR, lives in
 [`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md) — the single source of truth.

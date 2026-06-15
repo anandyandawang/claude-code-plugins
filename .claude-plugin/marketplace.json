@@ -28,7 +28,7 @@
     {
       "name": "clear-pr",
       "source": "./clear-pr",
-      "description": "Write PR titles and descriptions in anandyandawang's house style. Title: a lowercase imperative summary, like a commit subject (no ticket prefix). Body: a single `## What?` that leads with the change then the why, folding any decisive example or screenshot inline. Lead with what + why, link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; run /pr to draft one for the current branch.",
+      "description": "Write PR titles and descriptions in anandyandawang's house style. Title: a lowercase imperative summary, like a commit subject (no ticket prefix). Body: a single `## What?` that leads with the change then the why. Lead with what + why, link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; run /pr to draft one for the current branch.",
       "category": "productivity"
     }
   ]

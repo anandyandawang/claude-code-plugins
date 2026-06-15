@@ -27,9 +27,7 @@ Extra notes from the user (may be empty): $ARGUMENTS
    - Title: `<imperative, usually-lowercase summary>` — no ticket prefix, like a commit subject.
    - `## What?`: lead with the change, then the why. Prose for a simple change, bullets for a multi-part
      one. Backtick every code identifier. Link evidence as `[text](url)` rather than pasting it; inline
-     only the decisive error/payload if the change hinges on it. Fold any screenshot / example inline
-     (you generally can't produce screenshots here, so add a `<!-- add screenshot -->` placeholder for
-     the user where one belongs). Name tradeoffs / alternatives honestly.
+     only the decisive error/payload if the change hinges on it. Name tradeoffs / alternatives honestly.
    - Size it to the change — a one-line `## What?` is correct for a trivial PR.
 3. **Show the full draft** (title + body) to the user in a code block. Note anything you were unsure about
    or any placeholder you left.

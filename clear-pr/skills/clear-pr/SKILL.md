@@ -3,10 +3,10 @@ name: clear-pr
 description: >
   Write pull request titles and descriptions in anandyandawang's house style. Title is a lowercase
   imperative summary, like a git commit subject (no ticket prefix). Body is a single `## What?` section
-  that leads with the change then the why, folding in any decisive example or screenshot inline. Lead
-  with what + why, link evidence instead of inlining it, backtick every code identifier, be honest about
-  tradeoffs, and size the description to the change. Use whenever opening a pull request or
-  drafting/editing a PR description, or when the user runs /pr, says "write the PR", or "PR description".
+  that leads with the change then the why. Lead with what + why, link evidence instead of inlining it,
+  backtick every code identifier, be honest about tradeoffs, and size the description to the change. Use
+  whenever opening a pull request or drafting/editing a PR description, or when the user runs /pr, says
+  "write the PR", or "PR description".
 ---
 
 # clear-pr — house style for PR descriptions
@@ -57,9 +57,6 @@ section can be that one line; for anything with moving parts, the why is the par
 - **…but inline the crux when the change hinges on it.** If the fix is "these two payloads differ", show
   the few decisive lines in a fenced code block (error message, the request before/after, the offending
   field) and link the full trace. Inline the 3 lines that matter, link the other 300.
-- **Fold examples / screenshots in inline.** When a screenshot or before/after is worth showing, drop it
-  right where it makes the point — a one-line caption then the `<img ... />` or fenced block — rather
-  than in a separate section.
 - **Be honest about tradeoffs.** Name the alternative you considered and why you didn't take it; if you
   shipped the simpler 80/20 fix, say so and link a follow-up for the better version. State uncertainty
   plainly ("as crazy as it is, I think field order is the fix").
@@ -116,5 +113,4 @@ update `GeneralInquiry` fixtures with ones from prod
 - Title is an imperative summary (no ticket prefix), like a commit subject.
 - `## What?` leads with the change and gives the why; code identifiers are backticked.
 - Evidence is linked; the decisive error/payload (if any) is inlined, the rest linked.
-- Any screenshot / example is folded into `## What?`, not a separate section.
 - Tradeoffs / alternatives named where relevant; follow-up work is linked.
