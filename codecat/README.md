@@ -45,8 +45,9 @@ through the hook `systemMessage` field — the one channel shown directly to you
 greeting is harder to miss; surfaces that don't support it just ignore it.
 No dependencies, just Node.
 
-The art is wrapped in a code fence so it stays monospaced and aligned on the
-desktop app and web. Best viewed in a monospace font.
+The art is wrapped in a code fence so it stays monospaced and aligned wherever it
+renders. Best viewed in a monospace font — but first see
+[where the cat renders](#where-the-cat-renders-the-catch).
 
 ### adding your own cats
 
@@ -70,6 +71,31 @@ Art lives in `hooks/cats.txt`. Two kinds:
 ( -.- )
  > ^ <
 ```
+
+## where the cat renders (the catch)
+
+codecat delivers every cat through the hook `systemMessage` field, and **that field
+is only reliably drawn in the terminal CLI.** Other surfaces run the hook and record
+its output into the transcript, but don't paint the message on screen:
+
+| surface | cat shows? |
+|---------|-----------|
+| terminal CLI | ✅ yes |
+| desktop app | ❌ no — recorded in the transcript, but not displayed |
+| web app (claude.ai/code) / cloud sessions | ❌ no |
+| VS Code extension | ❌ no |
+
+This is a **Claude Code limitation, not something a hook can work around**: the hook
+runs fine and emits the cat, but the non-terminal UIs drop the `hook_system_message`
+attachment before it's rendered. It's tracked upstream (e.g. claude-code issues
+[#50542](https://github.com/anthropics/claude-code/issues/50542) and
+[#15344](https://github.com/anthropics/claude-code/issues/15344)) and currently
+unresolved.
+
+**Bottom line: codecat is a _terminal_ companion.** Run Claude Code in your terminal
+and the cat shows up as intended. In the desktop or web app it's running but
+invisible — the only thing that may still reach you there is the greet/farewell
+desktop notification, and even that depends on the surface.
 
 ## tune it
 
