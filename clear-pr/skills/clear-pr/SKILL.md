@@ -1,5 +1,5 @@
 ---
-name: clearpr
+name: clear-pr
 description: >
   Write pull request titles and descriptions in anandyandawang's house style — the format used across
   paywithextend repos like wex-integrator and fis-integrator. Title is `[EX-####] <lowercase imperative
@@ -10,7 +10,7 @@ description: >
   when the user runs /pr, says "write the PR", "PR description", or references a [EX-####] / Jira ticket.
 ---
 
-# clearpr — house style for PR descriptions
+# clear-pr — house style for PR descriptions
 
 Goal: a reviewer understands **what changed and why** in the first few seconds, and can reach the
 evidence in one click. Clear beats long. Reasoning beats restating the diff.

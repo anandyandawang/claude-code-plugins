@@ -26,8 +26,8 @@
       "category": "fun"
     },
     {
-      "name": "clearpr",
-      "source": "./clearpr",
+      "name": "clear-pr",
+      "source": "./clear-pr",
       "description": "Write PR titles and descriptions in anandyandawang's house style (used across paywithextend repos like wex-integrator and fis-integrator). Title: [EX-####] lowercase imperative summary. Body: a `## What?` that leads with the change then the why, an optional `## Examples / Screenshots?`, and a closing `## Jira Link`. Lead with what + why, link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; run /pr to draft one for the current branch.",
       "category": "productivity"
     }

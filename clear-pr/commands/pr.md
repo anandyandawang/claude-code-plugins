@@ -1,11 +1,11 @@
 ---
-description: Draft a PR title + description for the current branch in the clearpr house style, then open the PR only after you confirm.
+description: Draft a PR title + description for the current branch in the clear-pr house style, then open the PR only after you confirm.
 argument-hint: "[EX-#### and/or notes, optional]"
 allowed-tools: Bash(git branch:*), Bash(git rev-parse:*), Bash(git symbolic-ref:*), Bash(git log:*), Bash(git diff:*), Bash(git status:*)
 ---
 
-You are drafting a pull request for the current branch. Follow the **clearpr** skill
-(`skills/clearpr/SKILL.md`) for the title and body format — it is the single source of truth. Do not
+You are drafting a pull request for the current branch. Follow the **clear-pr** skill
+(`skills/clear-pr/SKILL.md`) for the title and body format — it is the single source of truth. Do not
 invent a different format.
 
 ## Context (gathered for you)
@@ -25,7 +25,7 @@ Extra notes / ticket from the user (may be empty): $ARGUMENTS
 2. **Understand the change.** Use the commits and diffstat above; read the actual diff
    (`git diff <base>...HEAD`) for any file whose purpose isn't obvious from its name. The body must
    explain *why*, so make sure you actually know why.
-3. **Draft the title and body** per the clearpr skill:
+3. **Draft the title and body** per the clear-pr skill:
    - Title: `[EX-####] <imperative, usually-lowercase summary>`.
    - `## What?`: lead with the change, then the why. Prose for a simple change, bullets for a multi-part
      one. Backtick every code identifier. Link evidence as `[text](url)` rather than pasting it; inline
