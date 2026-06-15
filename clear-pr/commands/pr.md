@@ -26,7 +26,8 @@ Extra notes from the user (may be empty): $ARGUMENTS
 ## What to do
 
 1. **Draft the title and body** per the clear-pr skill:
-   - Title: `<imperative, usually-lowercase summary>` — no ticket prefix, like a commit subject.
+   - Title: `<imperative, usually-lowercase summary>` — no issue-tracker prefix, like a commit subject.
+     A conventional-commit / semver prefix (`feat:`, `fix:`, `feat!:`) is fine if the repo uses one.
    - `## What?`: lead with the change, then the why. Prose for a simple change, bullets for a multi-part
      one. Backtick every code identifier. Link evidence as `[text](url)` rather than pasting it; inline
      only the decisive error/payload if the change hinges on it. Name tradeoffs / alternatives honestly.

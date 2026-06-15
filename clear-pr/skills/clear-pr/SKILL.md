@@ -32,7 +32,11 @@ Match this format when opening a PR or writing/editing a PR body.
 
 ## Title
 
-- Format: `<imperative summary>` — just the summary, no ticket/issue prefix.
+- Format: `<imperative summary>` — no issue-tracker prefix like `[EX-####]`.
+- A conventional-commit / semver prefix is welcome when the repo uses one: `feat:`, `fix:`,
+  `refactor(scope):`, and `!` for a breaking change (`feat(api)!: …`). Mirror the repo's own commit
+  convention — that prefix carries the version-bump signal, which is worth keeping. It's the
+  issue-tracker prefix we drop, not semver.
 - Imperative, verb-first: `add`, `fix`, `refactor`, `implement`, `handle`, `remove`, `bump`, `update`,
   `introduce`, `enable`, `send`, `persist`. Same mood as a git commit subject.
 - Lowercase is the norm (`add vcn refresh command`). Capitalizing the first word is fine when it reads
@@ -110,7 +114,8 @@ update `GeneralInquiry` fixtures with ones from prod
 
 ## Checklist before opening
 
-- Title is an imperative summary (no ticket prefix), like a commit subject.
+- Title is an imperative summary, like a commit subject — no issue-tracker prefix; a `feat:` / `fix:`
+  semver prefix is fine if the repo uses one.
 - `## What?` leads with the change and gives the why; code identifiers are backticked.
 - Evidence is linked; the decisive error/payload (if any) is inlined, the rest linked.
 - Tradeoffs / alternatives named where relevant; follow-up work is linked.
