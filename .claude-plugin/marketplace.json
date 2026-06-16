@@ -14,6 +14,12 @@
       "category": "productivity"
     },
     {
+      "name": "grug-extremist",
+      "source": "./grug-extremist",
+      "description": "grug but EXTREME — applies ONLY to Claude's chat/personality output; commits, PRs, code, comments, reviews and logs stay normal. Hard cap: at most 5-10 words per turn; if the user asks grug to explain, at most 50 words. Brevity beats clarity — short wins even for security/danger/destructive content (grug still says the danger, in few words). Third person 'grug', simple words; code and values stay byte-exact. complexity very very bad. word very bad too.",
+      "category": "productivity"
+    },
+    {
       "name": "terse",
       "source": "./terse",
       "description": "Hard global cap on output verbosity: at most ~20% of a normal response. Strict, no exceptions. Every medium — chat, commits, PRs, code comments, reviews, logs, docs. Lead with the answer, then stop. Code and technical values stay exact and complete.",
