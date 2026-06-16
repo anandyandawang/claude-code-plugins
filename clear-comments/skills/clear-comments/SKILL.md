@@ -9,9 +9,13 @@ description: >
   and complex services — one-line summary, an enumerated state/transition table where it earns its keep,
   `@param` only when non-obvious. Inline `//` annotates mapping tables with the source system's own label.
   Tests get scenario/section banners and step narration. Voice: first person plural, plain, honest about
-  temp hacks and working assumptions. Use whenever writing or editing code comments, doc comments, or
-  TODOs, or when the user says "comment this", "add a comment", "clean up the comments", or references
-  comment style.
+  temp hacks and working assumptions. ALWAYS use this skill — it is not optional — whenever you write or
+  edit any comment in any language: standalone `//`, trailing `//`, doc comments (`/** */`, KDoc, Javadoc,
+  JSDoc, docstrings), `#` comments (Python, Ruby, shell, YAML), `--` (SQL, Lua), `<!-- -->` (HTML/XML),
+  block comments, or a `// TODO`. This includes comments you add incidentally while implementing a feature,
+  fixing a bug, refactoring, or writing tests — not only when comments are the explicit ask. Also use when
+  the user says "comment this", "add a comment", "clean up the comments", "document this", or references
+  comment/documentation style. If you are about to type a comment character, this skill applies.
 ---
 
 # clear-comments — house style for code comments
@@ -22,6 +26,25 @@ Reasoning beats narration. **The best comment is often no comment** — name the
 the line instead.
 
 Match this style when writing or editing comments.
+
+## Hard rules — apply every time, no exceptions
+
+These are not suggestions. Every comment you write or touch must pass all of them:
+
+1. **Comment sparingly** — roughly 1 line in 100. Try to delete the need (better name, smaller function)
+   before writing one. Default to no comment.
+2. **Why, not what.** Never restate the code on the line below. If the comment paraphrases the code, delete it.
+3. **Vocabulary is fixed:** `//`, `/** */` doc comments, `// TODO:`, `// Note:`. Nothing else.
+4. **Never introduce** `/* */` block comments, `FIXME`, `HACK`, `XXX`, `WARNING`, decorative/ASCII-art
+   banners in production source, or commented-out code (delete it — git remembers).
+5. **Backtick every code identifier** — class, method, field, enum value, column, type, param, env name.
+6. **Every `// TODO` states its unblocking condition** ("once X" / "until Y" / "pending Z"), plus the
+   tracker key in parens when the project uses one. A TODO with no condition is a complaint — don't write it.
+7. **`// Note:`** for an intentional, surprising decision a reader would otherwise "fix" and break.
+8. **Voice: first person plural, plain.** Honest about temp hacks and working assumptions; no emoji, no filler.
+
+When in doubt, write less. Clear beats thorough; no comment beats a redundant one. The rest of this file
+is the detail behind these rules.
 
 ## First rule: comment sparingly
 
