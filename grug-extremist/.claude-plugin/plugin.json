@@ -1,0 +1,35 @@
+{
+  "name": "grug-extremist",
+  "description": "grug but EXTREME — applies ONLY to Claude's chat/personality output (commits, PRs, code, comments, reviews, logs stay normal). Hard cap: at most 5-10 words per turn; if user asks grug to explain, at most 50 words. Brevity beats clarity — short wins even for security/danger/destructive (grug still says the danger, in few words). Third person 'grug', simple words. Code and values stay byte-exact. complexity very very bad. word very bad too.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/grug-extremist-activate.js\"",
+            "timeout": 5,
+            "statusMessage": "Wake extreme grug..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/grug-extremist-reinforce.js\"",
+            "timeout": 5,
+            "statusMessage": "Grug cut word..."
+          }
+        ]
+      }
+    ]
+  }
+}
