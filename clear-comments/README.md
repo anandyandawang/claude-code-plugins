@@ -29,12 +29,16 @@ The full spec, with worked examples, lives in
 
 ## what clear-comments does
 
-- **Skill** (`skills/clear-comments/clear-comments`) — auto-applies whenever Claude writes or edits a
-  code comment, doc comment, or TODO, so comments come out in this style without being asked. Invoke it
-  directly with `/clear-comments` to re-affirm the style mid-session.
+- **Hooks (always-on)** — a `SessionStart` hook loads the full house style up front, and a
+  `UserPromptSubmit` hook re-asserts the sparse-comment default every turn. This keeps the style in
+  context from the first edit instead of only when the skill happens to fire, so Claude defaults to
+  *fewer* comments and more self-documenting code as a persistent state — not just on demand.
+- **Skill** (`skills/clear-comments/clear-comments`) — the full spec, with worked examples. It still
+  auto-applies whenever Claude writes or edits a comment, and you can invoke it directly with
+  `/clear-comments` to re-affirm the style mid-session.
 
-Skill-only — no command, no hooks, nothing always-on. clear-comments just shapes how comments come out
-whenever there are comments to write.
+The hooks make the sparse-comment default persistent; the skill carries the detail. Both read from the
+same [`SKILL.md`](./skills/clear-comments/SKILL.md), so there's one source of truth.
 
 ## install
 
