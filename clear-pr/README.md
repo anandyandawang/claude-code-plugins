@@ -1,21 +1,28 @@
 # clear-pr
 
-> a reviewer should know **what changed and why** in the first few seconds.
+> a reviewer should know **the high-level what and the why** in the first few seconds.
 
 clear-pr makes Claude write PR titles and descriptions in anandyandawang's house style. Distilled from
-the way these PRs are actually written: lead with the change and the why, link the evidence, keep code
-exact, and size the description to the change.
+the way these PRs are actually written: the diff already shows *what changed and how* — so the
+description leads with the high-level outcome, then spends its words on the **why** the diff can't show.
 
 ## the format
 
 **Title** — `<imperative summary>` (lowercase, verb-first, like a commit subject — no ticket prefix).
 
-**Body** — a single `## What?` section: what the PR does, then **why**, immediately. Prose for a simple
-change, bullets for a multi-part one. Code identifiers in backticks. Evidence linked (traces, Slack,
-API docs, CI runs, related PRs, follow-up tickets); the decisive error/payload inlined only when the
-change hinges on it. Tradeoffs named honestly.
+**Body** — two sections:
 
-The full spec, with worked examples for both a trivial and a substantive PR, lives in
+- `## What` — one or two lines of **high-level outcome**, not a diff summary. What behaves differently
+  now, in plain language.
+- `## Why` — the **context the diff can't show**: the trigger, the constraint, the decision and what you
+  ruled out. This is where the words go. Evidence linked (traces, Slack, API docs, CI runs, related PRs,
+  follow-up tickets); the decisive error/payload inlined only when the change hinges on it.
+
+An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home.
+
+The split is deliberate: left alone, an AI-written PR over-describes *what* and *how the code changed*
+and skimps on the *why*. Giving `## Why` its own section pushes the effort back where a reviewer needs
+it. The full spec, with worked examples for both a trivial and a substantive PR, lives in
 [`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md) — the single source of truth.
 
 ## what clear-pr does
@@ -36,6 +43,13 @@ PR to write.
 ```
 
 Then let it apply automatically when you open a PR, or invoke `/clear-pr` to apply the format on demand.
+
+## clear-pr vs context-rich-pr
+
+clear-pr is the **house style** — how a PR is written. [`context-rich-pr`](../context-rich-pr) is a
+separate, independent plugin that **enriches** an already-open PR with context pulled from a JIRA ticket
+and Datadog. They compose but don't depend on each other: use clear-pr for the format, add
+context-rich-pr when you want ticket/observability context folded in.
 
 ## tweak the format
 

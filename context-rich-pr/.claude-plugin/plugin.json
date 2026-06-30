@@ -1,0 +1,9 @@
+{
+  "name": "context-rich-pr",
+  "description": "After a PR is created, enrich its description with context a human reviewer wants but the diff can't show. Triggers when a JIRA key (e.g. EX-12345) has been mentioned anywhere in the session: once a PR exists, fetch the ticket via the Atlassian MCP, add a `## JIRA` section linking it, fold the ticket's high-level what/why into the body, and attach Datadog links (traces, logs, metrics, dashboards) where they aid the why. A content enricher, not a formatter — completely independent of clear-pr. Invoke /context-rich-pr to enrich the current PR on demand.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  }
+}
