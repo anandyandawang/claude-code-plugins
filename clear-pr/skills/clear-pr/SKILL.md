@@ -65,6 +65,20 @@ the paragraph it belongs to or cut it. Lead with that idea where you can, so the
 supporting detail. This is why we split — not only to stay under the word cap, but so every paragraph
 reads as one focused thought.
 
+**A framing that finds the split: "currently…" then "this PR…".** A reliable way to land one idea per
+paragraph — and it works in any section, `## What`, `## Why`, or `## Notes` — is to separate the *current
+state of things* from *what this PR introduces*. One paragraph describes how things are today; the next
+describes the change. Each then has a single, nameable job — "the situation" and "the move" — instead of
+tangling both into one block. For example:
+
+> Our integrators are largely independent today, even though they share a lot of logic.
+>
+> This PR pulls that shared logic into one place, so the integrators stay consistent with each other as
+> they change.
+
+The first paragraph is *only* the state of the world; the second is *only* what changed. Reach for this
+shape whenever a paragraph is trying to do both at once.
+
 `## Notes` is an optional third section — use it only for something that's neither what nor why and
 genuinely adds value: a tradeoff, a follow-up, or how you verified a non-obvious fix. When present, keep
 it to 25-50 words; like `## Why`, that limit applies only when the section is used.
