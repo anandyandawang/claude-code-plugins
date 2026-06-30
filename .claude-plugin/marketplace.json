@@ -34,7 +34,13 @@
     {
       "name": "clear-pr",
       "source": "./clear-pr",
-      "description": "Write PR titles and descriptions in anandyandawang's house style. Title: a lowercase imperative summary, like a commit subject (no ticket prefix). Body: a single `## What?` that leads with the change then the why. Lead with what + why, link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; invoke /clear-pr to apply the format on demand.",
+      "description": "Write PR titles and descriptions in anandyandawang's house style. Title: a lowercase imperative summary, like a commit subject (no ticket prefix). Body: `## What` (one or two lines of high-level outcome, not a diff summary) then `## Why` (the context the diff can't show — trigger, constraint, decision, alternatives). The diff already shows what changed and how; the description carries the high-level what and the why. Link evidence instead of inlining, backtick every code identifier, be honest about tradeoffs, size to the change. Auto-applies when opening a PR; invoke /clear-pr to apply the format on demand.",
+      "category": "productivity"
+    },
+    {
+      "name": "context-rich-paywithextend-pr",
+      "source": "./context-rich-paywithextend-pr",
+      "description": "After a PR is created, enrich its description with context a human reviewer wants but the diff can't show. Triggers when a JIRA key (e.g. EX-12345) has been mentioned anywhere in the session: once a PR exists, fetch the ticket via the Atlassian MCP, add a `## JIRA` section linking it, fold the ticket's high-level what/why into the body, and attach Datadog links (traces, logs, metrics, dashboards) where they aid the why. A content enricher, not a formatter — completely independent of clear-pr. Invoke /context-rich-paywithextend-pr to enrich the current PR on demand.",
       "category": "productivity"
     },
     {
