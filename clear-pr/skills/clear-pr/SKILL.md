@@ -50,8 +50,16 @@ only the decisive line.>
 simple English: aim for a level a high schooler could follow and get the gist of. Keep code and file
 references sparing; reach for plain language first.
 
+The `## Why` word limit applies only when the section is present — it's optional, so drop it entirely
+(and its limit with it) when a reviewer is missing nothing.
+
+**Paragraph cap (applies everywhere):** every paragraph, in any section, runs at most 50 words. Split
+into more paragraphs whenever it helps — two 25-word paragraphs for two related-but-distinct ideas read
+better than one 50-word block. Shorter paragraphs are easier to scan, so prefer the split.
+
 `## Notes` is an optional third section — use it only for something that's neither what nor why and
-genuinely adds value: a tradeoff, a follow-up, or how you verified a non-obvious fix.
+genuinely adds value: a tradeoff, a follow-up, or how you verified a non-obvious fix. When present, keep
+it to 25-50 words; like `## Why`, that limit applies only when the section is used.
 
 ## One main subject
 
@@ -166,4 +174,6 @@ update `GeneralInquiry` fixtures with ones from prod
   error/payload (if any) inlined.
 - Both sections read in plain, simple English — a high schooler could get the gist — with code and file
   references kept sparing.
-- `## Notes` only if a tradeoff, follow-up, or verification genuinely needs its own home.
+- Every paragraph, in any section, is 50 words or fewer — split into more paragraphs where it reads better.
+- `## Notes` only if a tradeoff, follow-up, or verification genuinely needs its own home — and when used,
+  it's 25-50 words.

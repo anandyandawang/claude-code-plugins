@@ -4,7 +4,7 @@ description: >
   After a pull request is created, enrich its description with context a human reviewer would want but
   the diff can't show — pulled from the JIRA ticket the work belongs to and from Datadog. Triggers when
   the user has mentioned a JIRA key (e.g. EX-12345) anywhere in the session: once a PR exists, fetch the
-  ticket via the Atlassian MCP, add a `## JIRA` section linking it, fold the ticket's high-level
+  ticket via the Atlassian MCP, append a `## JIRA` section at the bottom linking it, fold the ticket's high-level
   what/why into the PR body, and attach Datadog links (traces, logs, metrics, dashboards) where they aid
   the why. Keep it focused and brief — only context that helps a reviewer; no dumps. Independent of
   clear-pr — this enriches a PR's content, it does not impose a PR format. Use whenever a JIRA key is in
@@ -67,8 +67,8 @@ Always add when enriching. Just the link — short and scannable:
 [EX-12345 — concise ticket summary](https://your-org.atlassian.net/browse/EX-12345)
 ```
 
-Place it near the top (around `## What`/`## Why`, wherever reads best) so a reviewer can jump to the
-ticket. Use the ticket's real summary as the link text.
+Place it at the **bottom** of the PR description, after every other section, so the link to the ticket
+sits as a footer. Use the ticket's real summary as the link text.
 
 ### Context folded into the body
 
@@ -114,10 +114,6 @@ The work is on `EX-3201`; the PR is already open with a `clear-pr`-style body. A
 ````markdown
 fix auths inquiry request failures by matching the upstream field order
 
-## JIRA
-
-[EX-3201 — Auths polling returns 500s in prod](https://acme.atlassian.net/browse/EX-3201)
-
 ## What
 
 Auths polling now succeeds against the upstream API — it was returning 500s on every request.
@@ -132,6 +128,10 @@ A working request orders the fields `SecurityToken` then `AccountNumber`; ours s
 first. The auths request is the only one with that ordering, which is why nothing else has hit this.
 Field order is the fix. After merge, watch the
 [auths 5xx rate](https://app.datadoghq.com/dashboard/auths-health) — it should drop to zero.
+
+## JIRA
+
+[EX-3201 — Auths polling returns 500s in prod](https://acme.atlassian.net/browse/EX-3201)
 ````
 
 Enrichment added: the `## JIRA` link, the business context (the failing settlement job, when it started),
@@ -140,7 +140,7 @@ the example trace, and the dashboard to watch — none of which the diff or orig
 ## Checklist
 
 - A JIRA key was actually in play and a PR actually exists — otherwise this skill did nothing.
-- `## JIRA` links the ticket via the resolved site URL, with the real summary as link text.
+- `## JIRA` sits at the bottom of the body and links the ticket via the resolved site URL, with the real summary as link text.
 - Helpful high-level what/why is folded in, summarized in your own words, on the main subject — not dumped.
 - Datadog links only where they illustrate the what/why; none forced in.
 - Existing PR body preserved and enriched, not overwritten.
