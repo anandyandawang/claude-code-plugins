@@ -1,5 +1,5 @@
 ---
-name: context-rich-pr
+name: context-rich-paywithextend-pr
 description: >
   After a pull request is created, enrich its description with context a human reviewer would want but
   the diff can't show — pulled from the JIRA ticket the work belongs to and from Datadog. Triggers when
@@ -8,10 +8,10 @@ description: >
   what/why into the PR body, and attach Datadog links (traces, logs, metrics, dashboards) where they aid
   the why. Independent of clear-pr — this enriches a PR's content, it does not impose a PR format. Use
   whenever a JIRA key is in play and a PR has just been (or is about to be) opened, or on demand via
-  /context-rich-pr.
+  /context-rich-paywithextend-pr.
 ---
 
-# context-rich-pr — enrich a PR with JIRA + Datadog context
+# context-rich-paywithextend-pr — enrich a PR with JIRA + Datadog context
 
 Goal: a reviewer opening the PR gets the context a human teammate would have given them — *what this is
 really for and why it matters* — without having to go dig in JIRA or Datadog themselves. The diff shows
@@ -22,6 +22,10 @@ This is a **content enricher, not a formatter.** It does not reshape the PR into
 — it adds a `## JIRA` section and folds genuinely-helpful context into the existing body. It composes
 with `clear-pr` (which owns the house style) but is completely independent of it: it works the same on a
 PR written in any format.
+
+**Scope: the Extend / paywithextend repos.** This plugin is specific to Extend's workflow — its JIRA
+project and its Datadog org. It's not a general-purpose plugin; install it where the work lives in those
+ticket and observability systems, not on unrelated personal repos.
 
 ## When this runs
 
@@ -34,7 +38,7 @@ Two conditions, both required:
 2. **A PR exists.** Enrichment happens **after** the PR is created. If you're about to open the PR, open
    it first (in whatever style applies), then enrich. If a PR is already open, enrich it in place.
 
-When both hold, enrich. On `/context-rich-pr`, do it on demand for the current PR using the most recent
+When both hold, enrich. On `/context-rich-paywithextend-pr`, do it on demand for the current PR using the most recent
 JIRA key in the session (ask for the key if none is known).
 
 ## Steps

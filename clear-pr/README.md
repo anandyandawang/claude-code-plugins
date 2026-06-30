@@ -44,12 +44,12 @@ PR to write.
 
 Then let it apply automatically when you open a PR, or invoke `/clear-pr` to apply the format on demand.
 
-## clear-pr vs context-rich-pr
+## clear-pr vs context-rich-paywithextend-pr
 
-clear-pr is the **house style** — how a PR is written. [`context-rich-pr`](../context-rich-pr) is a
+clear-pr is the **house style** — how a PR is written. [`context-rich-paywithextend-pr`](../context-rich-paywithextend-pr) is a
 separate, independent plugin that **enriches** an already-open PR with context pulled from a JIRA ticket
 and Datadog. They compose but don't depend on each other: use clear-pr for the format, add
-context-rich-pr when you want ticket/observability context folded in.
+context-rich-paywithextend-pr when you want ticket/observability context folded in.
 
 ## tweak the format
 

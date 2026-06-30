@@ -1,11 +1,15 @@
-# context-rich-pr
+# context-rich-paywithextend-pr
 
 > after a PR is open, bring the **why** to the reviewer — from JIRA and Datadog, not from the diff.
 
-context-rich-pr enriches an already-created pull request with the context a human reviewer actually
+context-rich-paywithextend-pr enriches an already-created pull request with the context a human reviewer actually
 wants: what the change is really for and why it matters. The diff shows the code; the JIRA ticket and the
 observability data hold the reasoning — this plugin folds the useful parts of that into the PR
 description so nobody has to go digging.
+
+> **Scope: the Extend / paywithextend repos.** This one is specific to Extend's JIRA project and Datadog
+> org — that's why the name carries `paywithextend`. Install it where the work lives in those systems,
+> not on unrelated personal repos. (`clear-pr`, by contrast, is house-style and repo-agnostic.)
 
 ## what it does
 
@@ -26,15 +30,15 @@ inside them, and it won't paste secrets into a public description.
 This is a deliberate split:
 
 - [`clear-pr`](../clear-pr) owns the **house style** — how a PR title and body are written.
-- **context-rich-pr** owns **enrichment** — adding JIRA/Datadog context to a PR that already exists.
+- **context-rich-paywithextend-pr** owns **enrichment** — adding JIRA/Datadog context to a PR that already exists.
 
-They compose, but neither needs the other. context-rich-pr is a content enricher, not a formatter: it
+They compose, but neither needs the other. context-rich-paywithextend-pr is a content enricher, not a formatter: it
 adds context to a PR in whatever format it's already in.
 
 ## when it runs
 
 After the PR is created. If you're about to open one, open it first, then enrich. If a PR is already
-open, it enriches in place. Invoke `/context-rich-pr` to enrich the current PR on demand (it uses the
+open, it enriches in place. Invoke `/context-rich-paywithextend-pr` to enrich the current PR on demand (it uses the
 most recent JIRA key in the session, or asks for one).
 
 ## requirements
@@ -49,10 +53,10 @@ most recent JIRA key in the session, or asks for one).
 
 ```
 /plugin marketplace add anandyandawang/claude-code-plugins
-/plugin install context-rich-pr@anandyandawang-plugins
+/plugin install context-rich-paywithextend-pr@anandyandawang-plugins
 ```
 
 ## tweak the behavior
 
-Edit [`skills/context-rich-pr/SKILL.md`](./skills/context-rich-pr/SKILL.md) — the skill reads from it,
+Edit [`skills/context-rich-paywithextend-pr/SKILL.md`](./skills/context-rich-paywithextend-pr/SKILL.md) — the skill reads from it,
 so one edit changes the behavior everywhere.
