@@ -5,9 +5,10 @@ description: >
   imperative summary, like a git commit subject (no ticket prefix). Body is two sections: `## What` —
   one or two lines of high-level outcome (not a diff summary) — and `## Why` — the context a reviewer
   can't get from the diff. Focus on the one main change; keep `## What` short, spend your words on the
-  why, stay brief about secondary changes, link evidence instead of inlining it, backtick every code
-  identifier, and size the description to the change. Use whenever opening a pull request or
-  drafting/editing a PR description, or when the user says "write the PR" or "PR description".
+  why, stay brief about secondary changes, link evidence instead of inlining it, name code identifiers
+  sparingly (only the ones central to the idea, backticked), and size the description to the change. Use
+  whenever opening a pull request or drafting/editing a PR description, or when the user says "write the
+  PR" or "PR description".
 ---
 
 # clear-pr — house style for PR descriptions
@@ -19,8 +20,10 @@ Focused beats complete. Reasoning beats restating the diff.
 
 > **Correct for two biases.** Left alone, an AI-written PR (1) over-describes *what* and *how the code
 > changed* — the part the reviewer already sees — and skimps on the *why*; and (2) gives every change
-> equal weight, burying the main point under secondary ones. Push the other way: keep `## What` short,
-> lead with the main subject, spend the words on `## Why`, and stay brief about the rest.
+> equal weight, burying the main point under secondary ones. It also reaches for code and file names —
+> the diff's vocabulary — when plain language would read better. Push the other way: keep `## What`
+> short, lead with the main subject, spend the words on `## Why`, stay brief about the rest, and name
+> identifiers sparingly.
 
 Match this format when opening a PR or writing/editing a PR body.
 
@@ -62,7 +65,8 @@ doing too much.
   git commit subject.
 - Lowercase is the norm (`add vcn refresh command`). Capitalize the first word only when it reads better
   (``Introduce `IssuerReader` to fetch external issuer IDs by env``).
-- Backtick code identifiers when it sharpens the title. One scannable line, no trailing period.
+- Prefer plain words; reach for a code identifier only when it *is* the subject, and backtick it then.
+  One scannable line, no trailing period.
 
 ## `## What` — the main change, short
 
@@ -71,7 +75,8 @@ now, or what capability exists that didn't. Write it for someone deciding whethe
 review.
 
 - **High level, not a diff summary.** Say "auths polling now succeeds against the upstream API," not
-  "reordered `SecurityToken` and `AccountNumber` in `AuthRequest`."
+  "reordered `SecurityToken` and `AccountNumber` in `AuthRequest`." Plain language over the diff's field
+  and file names.
 - **Don't enumerate the changes.** A bullet per file or per function means you're restating the diff.
   Step up a level: what does the sum amount to?
 - **Keep it to one or two lines.** If the what genuinely has a couple of distinct parts, one short
@@ -89,7 +94,9 @@ The diff shows every line that changed and never explains why any of it changed.
 - **Link evidence; don't inline it.** Traces, threads, docs, CI runs, related PRs — link inline as
   `[text](url)`. Inline only the crux: if the why *is* "these two payloads differ," show the few
   decisive lines and link the other 300.
-- **Backtick every code identifier** — class, field, method, type, enum, env, tag, path, version.
+- **Name identifiers sparingly.** Mention a class, field, method, or file only when it's central to the
+  point you're making — the one field whose order is the bug, not every type it touches. When you do name
+  one, backtick it. Prose over a scatter of code names.
 - **Voice:** first person, conversational, plain. A little personality is fine; clarity comes first.
 
 ## Right-size to the change
@@ -146,6 +153,7 @@ update `GeneralInquiry` fixtures with ones from prod
   semver prefix is fine if the repo uses one.
 - The description is about the one main change; secondary edits stay brief or unmentioned.
 - `## What` is high-level outcome, one or two lines — not a restatement of the diff.
-- `## Why` carries the context the diff can't: trigger, constraint, decision, alternatives. Identifiers
-  backticked; evidence linked; the decisive error/payload (if any) inlined.
+- `## Why` carries the context the diff can't: trigger, constraint, decision, alternatives. Code
+  identifiers named only where central (and backticked); evidence linked; the decisive error/payload
+  (if any) inlined.
 - `## Notes` only if a tradeoff, follow-up, or verification genuinely needs its own home.

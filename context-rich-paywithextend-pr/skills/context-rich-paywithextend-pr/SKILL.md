@@ -81,6 +81,9 @@ diff restatement, or boilerplate, leave it out.
   constraint or deadline — and fold them in. Never paste the ticket.
 - **Stay on the main subject.** Add the why behind the central change; don't pad with tangential ticket
   detail. Brief and focused.
+- **Plain language over code names.** Write the context in prose; name a class, field, or file only when
+  it's central to the point (backticked). Don't carry the ticket's or diff's identifier soup into the
+  body.
 - **Reader-oriented.** Write it for the reviewer, not as a ticket transcript. Connect the ticket's intent
   to what the PR does.
 - **Don't duplicate** what the PR body already says.
