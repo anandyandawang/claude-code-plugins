@@ -13,17 +13,17 @@ description: >
 
 # clear-pr — house style for PR descriptions
 
-Goal: a reviewer understands **the one main change and why** in the first few seconds, and can reach the
-evidence in one click. The diff already shows *what changed and how* — the reviewer will read it. The
-description's job is the part the diff **can't** show: the framing and the context. Brief beats long.
-Focused beats complete. Reasoning beats restating the diff.
+Goal: a reviewer understands **the one main change, at a high level, and why** in the first few seconds,
+and can reach the evidence in one click. The diff already shows *what changed and how* — the reviewer
+will read it. The description's job is the part the diff **can't** show: the high-level framing and the
+context. Brief beats long. High-level and focused beats complete. Reasoning beats restating the diff.
 
 > **Correct for two biases.** Left alone, an AI-written PR (1) over-describes *what* and *how the code
 > changed* — the part the reviewer already sees — and skimps on the *why*; and (2) gives every change
 > equal weight, burying the main point under secondary ones. It also reaches for code and file names —
 > the diff's vocabulary — when plain language would read better. Push the other way: keep `## What`
-> short, lead with the main subject, spend the words on `## Why`, stay brief about the rest, and name
-> identifiers sparingly.
+> short and high-level, lead with the main subject, spend the words on `## Why`, stay brief about the
+> rest, and name identifiers sparingly.
 
 Match this format when opening a PR or writing/editing a PR body.
 
@@ -34,8 +34,8 @@ Match this format when opening a PR or writing/editing a PR body.
 
 ## What
 
-<one or two lines: the main change in plain language — the outcome, not the diff. A reviewer reads
-this and knows what they're looking at.>
+<one or two lines: the main change at a high level, in plain language — the outcome, not the diff. A
+reviewer reads this and knows what they're looking at.>
 
 ## Why
 
@@ -68,9 +68,9 @@ doing too much.
 - Prefer plain words; reach for a code identifier only when it *is* the subject, and backtick it then.
   One scannable line, no trailing period.
 
-## `## What` — the main change, short
+## `## What` — the main change, high-level and short
 
-One or two lines, plain language, stating the **outcome** of the main change: what behaves differently
+One or two lines, plain language, stating the high-level **outcome** of the main change: what behaves differently
 now, or what capability exists that didn't. Write it for someone deciding whether this PR is theirs to
 review.
 
