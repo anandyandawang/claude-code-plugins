@@ -57,6 +57,14 @@ The `## Why` word limit applies only when the section is present — it's option
 into more paragraphs whenever it helps — two 25-word paragraphs for two related-but-distinct ideas read
 better than one 50-word block. Shorter paragraphs are easier to scan, so prefer the split.
 
+**One idea per paragraph (applies everywhere):** succinct isn't enough — each paragraph also needs a
+single, clear main idea it exists to convey. A reader should be able to say in one phrase what a
+paragraph is *about*. When a paragraph carries two ideas, it has none in focus: split it so each gets
+its own paragraph and its own point. If a sentence doesn't serve the paragraph's one idea, move it to
+the paragraph it belongs to or cut it. Lead with that idea where you can, so the point lands before the
+supporting detail. This is why we split — not only to stay under the word cap, but so every paragraph
+reads as one focused thought.
+
 `## Notes` is an optional third section — use it only for something that's neither what nor why and
 genuinely adds value: a tradeoff, a follow-up, or how you verified a non-obvious fix. When present, keep
 it to 25-50 words; like `## Why`, that limit applies only when the section is used.
@@ -174,6 +182,7 @@ update `GeneralInquiry` fixtures with ones from prod
   error/payload (if any) inlined.
 - Both sections read in plain, simple English — a high schooler could get the gist — with code and file
   references kept sparing.
-- Every paragraph, in any section, is 50 words or fewer — split into more paragraphs where it reads better.
+- Every paragraph, in any section, is 50 words or fewer **and** carries one clear main idea — split a
+  two-idea paragraph so each gets its own focused point.
 - `## Notes` only if a tradeoff, follow-up, or verification genuinely needs its own home — and when used,
   it's 25-50 words.
