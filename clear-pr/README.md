@@ -21,7 +21,8 @@ description leads with the high-level outcome, then spends its words on the **wh
 
 Both sections lean toward fewer words and plain, simple English — written so even a high schooler gets
 the gist, with code and file references kept sparing. Every paragraph, in any section, stays at 50 words
-or fewer — split into more paragraphs when it reads better.
+or fewer **and** carries one clear main idea — split a two-idea paragraph so each gets its own focused
+point, not just to stay under the cap.
 
 An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home — **25-50
 words** when used, its limit (like `## Why`'s) applying only when the section is present.
