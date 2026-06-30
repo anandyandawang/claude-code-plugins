@@ -24,8 +24,10 @@ with `clear-pr` (which owns the house style) but is completely independent of it
 PR written in any format.
 
 **Scope: the Extend / paywithextend repos.** This plugin is specific to Extend's workflow — its JIRA
-project and its Datadog org. It's not a general-purpose plugin; install it where the work lives in those
-ticket and observability systems, not on unrelated personal repos.
+project and its Datadog org. The Atlassian and Datadog MCP servers it leans on are themselves currently
+wired to Extend/paywithextend, so the ticket and observability lookups only resolve there. It's not a
+general-purpose plugin; install it where the work lives in those systems, not on unrelated personal
+repos.
 
 ## When this runs
 

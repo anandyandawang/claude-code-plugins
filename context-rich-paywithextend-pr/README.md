@@ -8,8 +8,10 @@ observability data hold the reasoning — this plugin folds the useful parts of 
 description so nobody has to go digging.
 
 > **Scope: the Extend / paywithextend repos.** This one is specific to Extend's JIRA project and Datadog
-> org — that's why the name carries `paywithextend`. Install it where the work lives in those systems,
-> not on unrelated personal repos. (`clear-pr`, by contrast, is house-style and repo-agnostic.)
+> org — that's why the name carries `paywithextend`. The Atlassian and Datadog MCP servers it relies on
+> are themselves currently wired to Extend/paywithextend, so the lookups only resolve there. Install it
+> where the work lives in those systems, not on unrelated personal repos. (`clear-pr`, by contrast, is
+> house-style and repo-agnostic.)
 
 ## what it does
 
