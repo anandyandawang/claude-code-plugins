@@ -20,9 +20,11 @@ description leads with the high-level outcome, then spends its words on the **wh
   hinges on it.
 
 Both sections lean toward fewer words and plain, simple English — written so even a high schooler gets
-the gist, with code and file references kept sparing.
+the gist, with code and file references kept sparing. Every paragraph, in any section, stays at 50 words
+or fewer — split into more paragraphs when it reads better.
 
-An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home.
+An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home — **25-50
+words** when used, its limit (like `## Why`'s) applying only when the section is present.
 
 The split is deliberate: left alone, an AI-written PR over-describes *what* and *how the code changed*
 and skimps on the *why*. Giving `## Why` its own section pushes the effort back where a reviewer needs

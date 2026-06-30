@@ -17,8 +17,8 @@ description so nobody has to go digging.
 
 When a **JIRA key** (e.g. `EX-12345`) has been mentioned anywhere in the session and a **PR exists**, it:
 
-- adds a `## JIRA` section linking the ticket (the site is resolved from your connected Atlassian org,
-  not hardcoded);
+- appends a `## JIRA` section at the bottom of the description linking the ticket (the site is resolved
+  from your connected Atlassian org, not hardcoded);
 - folds the ticket's **high-level what/why** into the PR body — summarized in plain language, for the
   reviewer, never a raw ticket dump;
 - attaches **Datadog links** (a failing trace, the metric that regressed, a dashboard to watch after
