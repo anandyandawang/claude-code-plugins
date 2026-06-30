@@ -12,11 +12,15 @@ description leads with the high-level outcome, then spends its words on the **wh
 
 **Body** — two sections:
 
-- `## What` — one or two lines of **high-level outcome**, not a diff summary. What behaves differently
-  now, in plain language.
+- `## What` — **25-50 words at most** of **high-level outcome**, not a diff summary. What behaves
+  differently now, in plain language.
 - `## Why` — the **context the diff can't show**: the trigger, the constraint, the decision and what you
-  ruled out. This is where the words go. Evidence linked (traces, Slack, API docs, CI runs, related PRs,
-  follow-up tickets); the decisive error/payload inlined only when the change hinges on it.
+  ruled out, in roughly **25-100 words**. This is where the words go. Evidence linked (traces, Slack, API
+  docs, CI runs, related PRs, follow-up tickets); the decisive error/payload inlined only when the change
+  hinges on it.
+
+Both sections lean toward fewer words and plain, simple English — written so even a high schooler gets
+the gist, with code and file references kept sparing.
 
 An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home.
 

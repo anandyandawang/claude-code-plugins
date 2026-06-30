@@ -3,12 +3,13 @@ name: clear-pr
 description: >
   Write pull request titles and descriptions in anandyandawang's house style. Title is a lowercase
   imperative summary, like a git commit subject (no ticket prefix). Body is two sections: `## What` —
-  one or two lines of high-level outcome (not a diff summary) — and `## Why` — the context a reviewer
-  can't get from the diff. Focus on the one main change; keep `## What` short, spend your words on the
-  why, stay brief about secondary changes, link evidence instead of inlining it, name code identifiers
-  sparingly (only the ones central to the idea, backticked), and size the description to the change. Use
-  whenever opening a pull request or drafting/editing a PR description, or when the user says "write the
-  PR" or "PR description".
+  the high-level outcome in 25-50 words (not a diff summary) — and `## Why` — the context a reviewer
+  can't get from the diff, roughly 25-100 words. Write both in plain English a non-engineer could follow,
+  with code and file names used sparingly. Focus on the one main change; keep `## What` short, spend your
+  words on the why, stay brief about secondary changes, link evidence instead of inlining it, name code
+  identifiers sparingly (only the ones central to the idea, backticked), and size the description to the
+  change. Use whenever opening a pull request or drafting/editing a PR description, or when the user says
+  "write the PR" or "PR description".
 ---
 
 # clear-pr — house style for PR descriptions
@@ -34,15 +35,20 @@ Match this format when opening a PR or writing/editing a PR body.
 
 ## What
 
-<one or two lines: the main change at a high level, in plain language — the outcome, not the diff. A
+<the main change at a high level, in plain language — the outcome, not the diff. 25-50 words, at most. A
 reviewer reads this and knows what they're looking at.>
 
 ## Why
 
 <the context the diff can't show: the trigger, the constraint, the decision and what you ruled out.
-This is the part that earns the PR — spend your words here. Link evidence; inline only the decisive
-line.>
+This is the part that earns the PR — spend your words here, roughly 25-100 words. Link evidence; inline
+only the decisive line.>
 ```
+
+**Word limits (guidelines, not hard caps):** `## What` is 25-50 words at most; `## Why` is roughly
+25-100 words. Lean toward the low end of both — the fewer words, the better. Write both sections in plain,
+simple English: aim for a level a high schooler could follow and get the gist of. Keep code and file
+references sparing; reach for plain language first.
 
 `## Notes` is an optional third section — use it only for something that's neither what nor why and
 genuinely adds value: a tradeoff, a follow-up, or how you verified a non-obvious fix.
@@ -70,21 +76,22 @@ doing too much.
 
 ## `## What` — the main change, high-level and short
 
-One or two lines, plain language, stating the high-level **outcome** of the main change: what behaves differently
-now, or what capability exists that didn't. Write it for someone deciding whether this PR is theirs to
-review.
+**25-50 words, at most** — fewer is better. Plain language, stating the high-level **outcome** of the
+main change: what behaves differently now, or what capability exists that didn't. Write it for someone
+deciding whether this PR is theirs to review — simple enough that a high schooler gets the gist.
 
 - **High level, not a diff summary.** Say "auths polling now succeeds against the upstream API," not
   "reordered `SecurityToken` and `AccountNumber` in `AuthRequest`." Plain language over the diff's field
   and file names.
 - **Don't enumerate the changes.** A bullet per file or per function means you're restating the diff.
   Step up a level: what does the sum amount to?
-- **Keep it to one or two lines.** If the what genuinely has a couple of distinct parts, one short
-  bullet each — each an outcome, not a code change.
+- **Keep it short.** A line or two. If the what genuinely has a couple of distinct parts, one short
+  bullet each — each an outcome, not a code change — still inside the 50-word ceiling.
 
 ## `## Why` — where the words go
 
-The diff shows every line that changed and never explains why any of it changed. That goes here.
+**Roughly 25-100 words** — lean low. The diff shows every line that changed and never explains why any of
+it changed. That goes here. Keep it plain enough that a non-engineer could follow the reasoning.
 
 - **Start with the trigger** — the bug, the 500, the requirement, the tech debt that bit. Link it.
 - **Give the missing context** — the constraint, the upstream behavior you matched, the surprising thing
@@ -106,7 +113,8 @@ The diff shows every line that changed and never explains why any of it changed.
 - **Substantive PR**: a tight `## What`, then a `## Why` that does the real work — evidence linked,
   alternatives named, the crux inlined.
 - Err toward fewer words. Every sentence in `## Why` should add context the diff can't — cut the rest.
-  `## What` never grows past a couple of lines.
+  `## What` stays at or under 50 words; `## Why` stays near 25-100. The ranges are a ceiling to lean
+  under, not a target to fill.
 
 ## Worked example (substantive fix)
 
@@ -152,8 +160,10 @@ update `GeneralInquiry` fixtures with ones from prod
 - Title is an imperative summary, like a commit subject — no issue-tracker prefix; a `feat:` / `fix:`
   semver prefix is fine if the repo uses one.
 - The description is about the one main change; secondary edits stay brief or unmentioned.
-- `## What` is high-level outcome, one or two lines — not a restatement of the diff.
-- `## Why` carries the context the diff can't: trigger, constraint, decision, alternatives. Code
-  identifiers named only where central (and backticked); evidence linked; the decisive error/payload
-  (if any) inlined.
+- `## What` is high-level outcome in 25-50 words at most — not a restatement of the diff.
+- `## Why` carries the context the diff can't: trigger, constraint, decision, alternatives — roughly
+  25-100 words. Code identifiers named only where central (and backticked); evidence linked; the decisive
+  error/payload (if any) inlined.
+- Both sections read in plain, simple English — a high schooler could get the gist — with code and file
+  references kept sparing.
 - `## Notes` only if a tradeoff, follow-up, or verification genuinely needs its own home.
