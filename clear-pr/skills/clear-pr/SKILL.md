@@ -163,13 +163,13 @@ This PR introduces multiple refactors to move a lot of those commonalities to
 ## Worked example (trivial)
 
 ```markdown
-update GeneralInquiry fixtures with ones from prod
+add GeneralInquiry fixtures from prod
 
 ## Summary
 
-Currently, our `GeneralInquiry` fixtures are out of date with what prod actually returns.
+Currently, we have no fixtures for `GeneralInquiry` responses, so its tests build payloads by hand.
 
-This PR updates them with fresh ones from prod.
+This PR introduces fixtures taken from real prod responses.
 ```
 
 ## Checklist before opening
