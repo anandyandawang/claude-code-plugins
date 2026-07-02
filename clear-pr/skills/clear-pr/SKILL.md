@@ -160,6 +160,18 @@ This PR introduces multiple refactors to move a lot of those commonalities to
   messages do not leak between tests
 ```
 
+## Worked example (trivial)
+
+```markdown
+update GeneralInquiry fixtures with ones from prod
+
+## Summary
+
+Currently, our `GeneralInquiry` fixtures are out of date with what prod actually returns.
+
+This PR updates them with fresh ones from prod.
+```
+
 ## Checklist before opening
 
 - Title is an imperative summary, like a commit subject — no issue-tracker prefix; a `feat:` / `fix:`
