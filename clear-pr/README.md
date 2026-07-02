@@ -1,36 +1,43 @@
 # clear-pr
 
-> a reviewer should know **the high-level what and the why** in the first few seconds.
+> a reviewer should know **the one main change, at a high level** in the first few seconds.
 
 clear-pr makes Claude write PR titles and descriptions in anandyandawang's house style. Distilled from
-the way these PRs are actually written: the diff already shows *what changed and how* — so the
-description leads with the high-level outcome, then spends its words on the **why** the diff can't show.
+the way these PRs are actually written: the diff already shows *what changed, line by line* — so the
+description gives the simple, high-level framing the diff can't: where things stand today, and what
+this PR does about it.
 
 ## the format
 
 **Title** — `<imperative summary>` (lowercase, verb-first, like a commit subject — no ticket prefix).
 
-**Body** — two sections:
+**Body** — a single section:
 
-- `## What` — **25-50 words at most** of **high-level outcome**, not a diff summary. What behaves
-  differently now, in plain language.
-- `## Why` — the **context the diff can't show**: the trigger, the constraint, the decision and what you
-  ruled out, in roughly **25-100 words**. This is where the words go. Evidence linked (traces, Slack, API
-  docs, CI runs, related PRs, follow-up tickets); the decisive error/payload inlined only when the change
-  hinges on it.
+- `## Summary` — **25-100 words** (fewer is better), in **at least two paragraphs**: the first
+  describes the current state of things ("Currently, …"), the second what this PR does or introduces
+  ("This PR …"). A short bullet list in the second paragraph is fine when the change has a few
+  distinct parts.
 
-Both sections lean toward fewer words and plain, simple English — written so even a high schooler gets
-the gist, with code and file references kept sparing. Every paragraph, in any section, stays at 50 words
-or fewer **and** carries one clear main idea — split a two-idea paragraph so each gets its own focused
-point, not just to stay under the cap.
+The whole thing reads in as simple, plain and natural English as possible — no fluff, written so even
+a non-engineer gets the gist. Backticks/code appear sparingly, only for particularly important files
+or identifiers, and flow naturally as part of the sentence.
 
-An optional `## Notes` holds a tradeoff, follow-up, or verification when it earns its own home — **25-50
-words** when used, its limit (like `## Why`'s) applying only when the section is present.
+For example:
 
-The split is deliberate: left alone, an AI-written PR over-describes *what* and *how the code changed*
-and skimps on the *why*. Giving `## Why` its own section pushes the effort back where a reviewer needs
-it. The full spec, with worked examples for both a trivial and a substantive PR, lives in
-[`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md) — the single source of truth.
+```markdown
+## Summary
+
+Currently, we have virtual card CRUD in place, but we have not implemented a way to get transactions
+for those cards from the issuer's endpoints.
+
+This PR introduces fetching transactions from the issuer's `GET /virtualcards/:id/transactions`
+endpoint.
+```
+
+The shape is deliberate: left alone, an AI-written PR over-describes the code changes and buries the
+main point. Splitting "the situation" from "the move" keeps each paragraph to one job. The full spec,
+with worked examples, lives in [`skills/clear-pr/SKILL.md`](./skills/clear-pr/SKILL.md) — the single
+source of truth.
 
 ## what clear-pr does
 
