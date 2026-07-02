@@ -51,9 +51,27 @@ you fill it.
    A short bullet list inside this paragraph is fine when the change genuinely has a few distinct
    parts — each bullet an outcome, still in plain language.
 
-Each paragraph has one job — "the situation" and "the move" — so never tangle both into one block. A
-third paragraph is allowed when something genuinely needs it (a tradeoff, a follow-up), but the
-default is two.
+Each paragraph has one job — "the situation" and "the move" — so never tangle both into one block.
+
+**More than two paragraphs is fine** — the real rule is that every paragraph is succinct and carries
+exactly one idea, while the core "Currently" vs "This PR" separation stays the spine. Extra paragraphs
+attach to one side or the other: another fact about today's state goes after "Currently, …"; evidence
+or verification of the change goes after "This PR …". For example:
+
+```markdown
+## Summary
+
+Currently, listing cards fires one query per card — a classic n+1.
+
+This makes the page slow; p95 sits around 5 seconds.
+
+This PR introduces a single batched query that loads all the cards at once.
+
+Local testing with `EXPLAIN PLAN` suggests this improves things significantly.
+```
+
+Four paragraphs, four ideas — the problem, how much it hurts, the fix, the evidence — and the
+situation/move split is still obvious at a glance.
 
 ## Plain, natural English — no fluffing
 
@@ -94,6 +112,20 @@ the one main change in a sentence, the PR may be doing too much.
   naming, and prefer a short bullet list over a dense paragraph.
 - Err toward fewer words. Every sentence should tell the reviewer something the diff can't — cut the
   rest. The 25-100 range is a ceiling to lean under, not a target to fill.
+
+## Worked example (substantive fix)
+
+```markdown
+fix auths inquiry request failures by matching the upstream field order
+
+## Summary
+
+Currently, auths polling is broken — the upstream API returns a 500 on every request, because we send
+`AccountNumber` before `SecurityToken` and its strict schema expects the opposite order.
+
+This PR reorders our request fields to match the upstream. Odd as it is, field order is the fix — the
+upstream is strict about it and we don't own its schema.
+```
 
 ## Worked example (feature)
 
