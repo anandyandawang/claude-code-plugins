@@ -48,6 +48,12 @@
       "source": "./clear-comments",
       "description": "Write code comments in anandyandawang's house style. Comment sparingly — the code says what, a comment says why. Vocabulary is `// TODO:` (with the unblocking condition, and the issue-tracker key in parens when the project uses one) and `// Note:` (an intentional, non-obvious decision); no FIXME/HACK/XXX, no `/* */` block comments, no commented-out code, no restating the line below. Backtick every code identifier. Doc comments are a mini-spec for public interfaces and complex services; inline `//` annotates mapping tables with the source system's label; tests get scenario/section banners. Always-on via hooks — keeps comments sparse and code self-documenting as a persistent default, not just when invoked.",
       "category": "productivity"
+    },
+    {
+      "name": "no-comments",
+      "source": "./no-comments",
+      "description": "Write code with ZERO comments, ever. Never write a code comment of any kind in any language — no `//`, `/* */`, doc comments, docstrings, `#`, `--`, `<!-- -->`, no TODO/Note/FIXME, no commented-out code. The code carries all meaning itself: better names, smaller functions, explicit types, enums, and well-named constants replace every comment. Machine-read directives (shebangs, linter/pragma directives, required license headers) are the only allowed comment-syntax lines. Always-on via hooks. Don't run alongside clear-comments — pick one.",
+      "category": "productivity"
     }
   ]
 }
