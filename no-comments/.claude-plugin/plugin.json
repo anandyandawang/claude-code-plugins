@@ -1,0 +1,35 @@
+{
+  "name": "no-comments",
+  "description": "Write code with ZERO comments, ever. Never write a code comment of any kind in any language — no `//`, `/* */`, doc comments, docstrings, `#`, `--`, `<!-- -->`, no TODO/Note/FIXME, no commented-out code. The code carries all meaning itself: better names, smaller functions, explicit types, enums, and well-named constants replace every comment. Machine-read directives (shebangs, linter/pragma directives, required license headers) are the only allowed comment-syntax lines. Always-on via hooks — enforces the zero-comment rule as a persistent default, not just when invoked.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/no-comments-activate.js\"",
+            "timeout": 5,
+            "statusMessage": "Loading zero-comment rule..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/no-comments-reinforce.js\"",
+            "timeout": 5,
+            "statusMessage": "Enforcing zero comments..."
+          }
+        ]
+      }
+    ]
+  }
+}
