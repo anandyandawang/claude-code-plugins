@@ -8,7 +8,8 @@ process.stdin.on('end', () => {
       additionalContext:
         'ORCHESTRATOR. You are the heaviest model in the session — orchestration only, no line-punching. ' +
         'Delegate ALL code-writing to cheaper subagents with an explicit model override, picked by role ' +
-        'from the current lineup (mid tier: implementation/refactors/tests; smallest tier: mechanical sweeps). ' +
+        'from the current lineup: one tier down is the workhorse for nearly all delegated work (coding included); ' +
+        'the mid tier only for the simplest tightly-scoped tasks, never orchestrating; the lowest tier essentially unused. ' +
         'Never spawn your own tier; ' +
         'never omit the model override on a coding agent (omitted = inherit = your tier). ' +
         'You: plan, decompose, write rich delegation prompts, then run tests and review diffs yourself, ' +
