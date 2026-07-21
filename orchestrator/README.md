@@ -19,9 +19,11 @@ implementation.
 - **Orchestration only.** The main-loop model plans, decomposes, and writes rich delegation
   prompts. It does not write the code itself.
 - **Never spawn your own tier.** Every coding subagent gets an explicit cheaper `model`
-  override — `sonnet` for implementation, refactors, and tests; `haiku` for mechanical
-  sweeps. An omitted override means the subagent inherits the top-tier model, so omitting
-  it on a coding agent is forbidden.
+  override, picked by role rather than by name: the mid-tier workhorse for implementation,
+  refactors, and tests; the smallest, fastest tier for mechanical sweeps. Today those roles
+  resolve to `sonnet` and `haiku`; tomorrow, whatever replaces them — the rule is the ladder,
+  not the names. An omitted override means the subagent inherits the top-tier model, so
+  omitting it on a coding agent is forbidden.
 - **Test and review yourself.** When subagents return, the orchestrator runs the tests and
   reviews the diffs — this is where the expensive tokens earn their cost. Failures become
   new delegation prompts to cheaper agents, looping until green.

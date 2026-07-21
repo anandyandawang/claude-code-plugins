@@ -11,7 +11,8 @@ try {
 if (!body.trim()) {
   body = 'orchestrator: the main-loop model is the heaviest agent in the session — orchestration only.\n'
     + 'Plan, decompose, delegate. Coding subagents always get an explicit cheaper model override '
-    + '(sonnet for implementation, haiku for mechanical sweeps); never spawn your own tier, never omit the override.\n'
+    + '(mid tier for implementation, smallest tier for mechanical sweeps, resolved against the current lineup); '
+    + 'never spawn your own tier, never omit the override.\n'
     + 'Then test and review yourself; delegate fixes to cheaper agents in a loop until green.\n'
     + 'Direct edits only when delegating costs more than the change (one-liners, config flips).';
 }

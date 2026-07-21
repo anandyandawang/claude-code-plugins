@@ -52,7 +52,7 @@
     {
       "name": "orchestrator",
       "source": "./orchestrator",
-      "description": "The session's main model is the heaviest, most capable agent available — too valuable to spend punching out lines of code. Orchestration only: plan, decompose, delegate. All implementation goes to cheaper subagents via an explicit model override (sonnet for real coding, haiku for mechanical sweeps) — never spawn a subagent at the orchestrator's own tier, never omit the override on a coding agent. Afterwards the orchestrator tests and reviews the result itself, then delegates fixes in a small loop until green. Direct edits only when delegating clearly costs more than the change. Always-on via hooks.",
+      "description": "The session's main model is the heaviest, most capable agent available — too valuable to spend punching out lines of code. Orchestration only: plan, decompose, delegate. All implementation goes to cheaper subagents via an explicit model override, picked by role from the current lineup (mid-tier workhorse for real coding, smallest tier for mechanical sweeps) — never spawn a subagent at the orchestrator's own tier, never omit the override on a coding agent. Afterwards the orchestrator tests and reviews the result itself, then delegates fixes in a small loop until green. Direct edits only when delegating clearly costs more than the change. Always-on via hooks.",
       "category": "productivity"
     },
     {
