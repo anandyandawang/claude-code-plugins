@@ -4,15 +4,14 @@ The heaviest model plans. Cheaper models code.
 
 ## The mentality
 
-> Fable can do all the planning and delegation, but don't let it spawn more Fable agents.
-> You don't need them coding. Its job is orchestrator only, then testing/review, allowing it
-> to delegate and spawn subagents to fix things at the end. Little baby loop, and it won't
-> waste the best coding agent punching lines.
+> The heaviest model can do all the planning and delegation, but don't let it spawn more
+> heavy agents. You don't need them coding. Its job is orchestrator only, then
+> testing/review, allowing it to delegate and spawn subagents to fix things at the end.
+> Little baby loop, and it won't waste the best coding agent punching lines.
 
-Generalized: whatever model runs the main loop is the most capable — and most expensive —
-agent in the session. Fable today, something else tomorrow. Its capability is for judgment
-(planning, decomposition, delegation prompts, review), not for typing out routine
-implementation.
+Whatever model runs the main loop is the most capable — and most expensive — agent in the
+session. Its capability is for judgment (planning, decomposition, delegation prompts,
+review), not for typing out routine implementation.
 
 ## What it enforces
 
@@ -20,10 +19,10 @@ implementation.
   prompts. It does not write the code itself.
 - **Never spawn your own tier.** Every coding subagent gets an explicit cheaper `model`
   override, picked by role rather than by name: the mid-tier workhorse for implementation,
-  refactors, and tests; the smallest, fastest tier for mechanical sweeps. Today those roles
-  resolve to `sonnet` and `haiku`; tomorrow, whatever replaces them — the rule is the ladder,
-  not the names. An omitted override means the subagent inherits the top-tier model, so
-  omitting it on a coding agent is forbidden.
+  refactors, and tests; the smallest, fastest tier for mechanical sweeps. Roles resolve
+  against whatever lineup the session offers — the rule is the ladder, not the names. An
+  omitted override means the subagent inherits the top-tier model, so omitting it on a
+  coding agent is forbidden.
 - **Test and review yourself.** When subagents return, the orchestrator runs the tests and
   reviews the diffs — this is where the expensive tokens earn their cost. Failures become
   new delegation prompts to cheaper agents, looping until green.

@@ -14,8 +14,8 @@ description: >
 
 ORCHESTRATOR MODE. Heaviest model plans and judges. Cheaper models write the code.
 
-The model running this main loop is the most capable (and most expensive) agent in the session —
-Fable today, whatever sits at the top of the lineup tomorrow. Its capability is for judgment:
+The model running this main loop is the most capable (and most expensive) agent in the session,
+whatever sits at the top of the current lineup. Its capability is for judgment:
 understanding the codebase, decomposing work, writing precise delegation prompts, and reviewing
 results critically. That capability is wasted typing out routine implementation. Don't let the
 best coding agent punch lines.
@@ -29,9 +29,8 @@ best coding agent punch lines.
 2. **Tier picks, by role not by name:** the mid-tier workhorse for implementation, refactoring,
    and test-writing; the smallest, fastest tier for mechanical sweeps — renames, boilerplate,
    formatting, find-and-replace-shaped edits. Resolve those roles against whatever lineup the
-   session offers (today that's `sonnet` and `haiku`; tomorrow, whatever replaces them). The
-   rule is the ladder, not the names: coding work goes at least one tier below the orchestrator,
-   as low as the task allows.
+   session offers. The rule is the ladder, not the names: coding work goes at least one tier
+   below the orchestrator, as low as the task allows.
 3. **Your jobs, done yourself:** explore enough to plan, write the delegation prompts, run the
    tests, review the diffs, make the calls. Read-only exploration subagents also default to a
    cheaper tier; inherit your own tier only when the question genuinely needs top-tier judgment
