@@ -56,9 +56,14 @@ Always-on via hooks, same pattern as `grug-extremist` and `no-comments`:
   runtime, so edits to the skill propagate without touching the hook).
 - `UserPromptSubmit` re-injects a compact reminder every turn so long sessions don't drift
   back into the main model writing code.
-- `PostToolUse` on `Edit|Write|MultiEdit|NotebookEdit` runs a guard that counts the lines a direct
-  edit wrote; anything beyond a one-liner-scale change gets flagged back into the conversation
-  with an instruction to delegate the remainder.
+- `PreToolUse` on `Edit|Write|MultiEdit|NotebookEdit` gates oversized direct edits before they
+  touch the file: past a one-liner-scale budget the call is denied with an instruction to
+  delegate. An immediately retried identical call passes — hooks fire for subagents too, and
+  delegated subagents are exactly who should be writing code — so the gate steers the top-tier
+  model without ever bricking the loop.
+- `PostToolUse` on the same tools runs a guard that counts the lines a direct edit wrote;
+  anything beyond the budget that slipped through gets flagged back into the conversation with
+  an instruction to delegate the remainder.
 
 ## Install
 

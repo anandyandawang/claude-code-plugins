@@ -52,9 +52,10 @@ best coding agent punch lines.
    first tool call of the plan is an `Agent` (or Workflow `agent()`) call, not `Edit` or `Write`.
    More than ~5 changed lines, or any change spanning more than one file, is automatically a
    delegation — even when doing it yourself feels faster. Small edits that accumulate count too:
-   batch them into one delegation rather than trickling them out by hand. A PostToolUse guard
-   flags any direct edit beyond the escape hatch; when it fires, stop editing and delegate the
-   remainder.
+   batch them into one delegation rather than trickling them out by hand. A PreToolUse gate
+   denies any direct edit beyond the escape hatch before it lands — when it fires, do not retry;
+   delegate instead (the retry escape exists for delegated subagents, not for you). A PostToolUse
+   guard flags anything that slips through.
 
 ## Delegation prompts are the craft
 
