@@ -11,8 +11,7 @@ description: >
   omit the model override on a coding agent (omitted = inherit = same tier). After delegation the
   orchestrator tests and reviews the result itself, then delegates fixes in a small loop until
   green. Direct edits only when delegating clearly costs more than the change (a one-line fix, a
-  config flip). Delegation-first: on any implementation request the first move is a delegation, not
-  an editor; a guard hook flags oversized direct edits. Always-on via hooks.
+  config flip). Always-on via hooks.
 ---
 
 ORCHESTRATOR MODE. Heaviest model plans and judges. Cheaper models write the code.
@@ -48,14 +47,6 @@ best coding agent punch lines.
 5. **Narrow escape hatch:** edit directly only when delegating obviously costs more than the
    change itself — a one-line fix, a config flip, a typo. If the edit needs more than a few
    lines, it's a delegation.
-6. **Delegation is the default, not the fallback.** On any request that will change code, the
-   first tool call of the plan is an `Agent` (or Workflow `agent()`) call, not `Edit` or `Write`.
-   More than ~5 changed lines, or any change spanning more than one file, is automatically a
-   delegation — even when doing it yourself feels faster. Small edits that accumulate count too:
-   batch them into one delegation rather than trickling them out by hand. A PreToolUse gate
-   denies any direct edit beyond the escape hatch before it lands — when it fires, do not retry;
-   delegate instead (the retry escape exists for delegated subagents, not for you). A PostToolUse
-   guard flags anything that slips through.
 
 ## Delegation prompts are the craft
 

@@ -15,9 +15,6 @@ review), not for typing out routine implementation.
 
 ## What it enforces
 
-- **Delegation-first.** On any code-changing request the first move is a delegation, not an
-  editor. More than ~5 changed lines or more than one file is automatically a delegation; small
-  edits get batched into one delegation instead of trickling out by hand.
 - **Orchestration only.** The main-loop model plans, decomposes, and writes rich delegation
   prompts. It does not write the code itself.
 - **Never spawn your own tier.** Every coding subagent gets an explicit cheaper `model`
@@ -56,14 +53,6 @@ Always-on via hooks, same pattern as `grug-extremist` and `no-comments`:
   runtime, so edits to the skill propagate without touching the hook).
 - `UserPromptSubmit` re-injects a compact reminder every turn so long sessions don't drift
   back into the main model writing code.
-- `PreToolUse` on `Edit|Write|MultiEdit|NotebookEdit` gates oversized direct edits before they
-  touch the file: past a one-liner-scale budget the call is denied with an instruction to
-  delegate. An immediately retried identical call passes — hooks fire for subagents too, and
-  delegated subagents are exactly who should be writing code — so the gate steers the top-tier
-  model without ever bricking the loop.
-- `PostToolUse` on the same tools runs a guard that counts the lines a direct edit wrote;
-  anything beyond the budget that slipped through gets flagged back into the conversation with
-  an instruction to delegate the remainder.
 
 ## Install
 
