@@ -56,6 +56,12 @@
       "category": "productivity"
     },
     {
+      "name": "plan-big-execute-small",
+      "source": "./plan-big-execute-small",
+      "description": "The session's main model is the coordinator: it plans, decomposes, briefs, judges, and synthesizes, but never pulls token-heavy raw material — web pages, long files, log dumps, broad search sweeps — through its own context. Cheap worker subagents with explicit model overrides do that reading in their own parallel context windows and report back distilled findings with evidence and stated uncertainties, so coverage work fans out N-wide and the bulk tokens bill at the cheap rate. Briefs have a floor cost, so bundle related lookups instead of shredding them; small planning peeks and reads where frontier judgment on the raw material is the point stay with the coordinator; untrusted content is read by scoped workers, and current-world facts come from worker reads, not recall. Always-on via hooks.",
+      "category": "productivity"
+    },
+    {
       "name": "no-comments",
       "source": "./no-comments",
       "description": "Write code with ZERO comments, ever. Never write a code comment of any kind in any language — no `//`, `/* */`, doc comments, docstrings, `#`, `--`, `<!-- -->`, no TODO/Note/FIXME, no commented-out code. The code carries all meaning itself: better names, smaller functions, explicit types, enums, and well-named constants replace every comment. Machine-read directives (shebangs, linter/pragma directives, required license headers) are the only allowed comment-syntax lines. Always-on via hooks. Don't run alongside clear-comments — pick one.",
