@@ -62,6 +62,12 @@
       "category": "productivity"
     },
     {
+      "name": "ultracodinator",
+      "source": "./ultracodinator",
+      "description": "Ultracode's standing opt-in, run with right-sized agents. Binds only while ultracode is on for the session; dormant otherwise. The main-loop model is the ultracodinator: it plans phases, authors workflow scripts, writes rich stage prompts, judges results, and synthesizes — and pushes essentially all execution into Workflow orchestrations. Every workflow agent() call and every subagent carries an explicit model override sized to its task — the heaviest model in the lineup is never spawned; it eats tokens like nothing else and exists for coordination alone: one tier down is the workhorse for implementation, design, and hard verification; the mid tier for tightly-scoped mechanical stages; the lowest tier essentially unused. Effort overrides follow the same sizing. Never omit the override — omitted means inherit, and inherit means the main-loop model. Direct edits only when orchestrating clearly costs more than the change. Always-on via hooks.",
+      "category": "productivity"
+    },
+    {
       "name": "no-comments",
       "source": "./no-comments",
       "description": "Write code with ZERO comments, ever. Never write a code comment of any kind in any language — no `//`, `/* */`, doc comments, docstrings, `#`, `--`, `<!-- -->`, no TODO/Note/FIXME, no commented-out code. The code carries all meaning itself: better names, smaller functions, explicit types, enums, and well-named constants replace every comment. Machine-read directives (shebangs, linter/pragma directives, required license headers) are the only allowed comment-syntax lines. Always-on via hooks. Don't run alongside clear-comments — pick one.",
