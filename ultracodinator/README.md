@@ -25,19 +25,22 @@ never rides in the fleet.
   coordinating. Every workflow `agent()` call and every subagent carries an explicit
   `model` override below that tier. An omitted override means inherit, and inherit means
   the main-loop model — forbidden. No stage, however hard, justifies it; the hardest
-  stages get the workhorse with a higher `effort` instead.
+  stages get the high tier with a higher `effort` instead.
 - **Per-task sizing, by role not by name.** Resolved against whatever lineup the session
   offers:
   - **Heaviest tier** — the coordinator: plans, authors scripts, judges, synthesizes.
     Never a stage, even when a lighter model runs the main loop.
-  - **One tier down, the workhorse** — implementation, design, debugging, and the
-    judge/verify stages that need real judgment.
-  - **Mid tier** — tightly-scoped mechanical stages: bulk reading, sweeps,
-    find-and-replace-shaped edits, format checks. Never orchestrates.
-  - **Lowest tier** — essentially unused.
+  - **High tier (one below the coordinator)** — reserved for the most complex stages:
+    the hardest design calls, the gnarliest debugging, the toughest adversarial
+    verification.
+  - **Mid tier, the workhorse** — the default: implementation, design, debugging, and
+    the judge/verify stages that need real judgment.
+  - **Low tier** — the simplest stages: bulk reading, sweeps, find-and-replace-shaped
+    edits, format checks. Never orchestrates.
 
   `effort` follows the same sizing. Don't over-downshift — rework from an underpowered
-  stage costs more than the tier gap saves; when in doubt, the workhorse.
+  stage costs more than the tier gap saves; when in doubt, the workhorse — and when the
+  workhorse is in doubt, the high tier.
 - **Narrow escape hatch.** Direct work only when orchestrating obviously costs more than
   the change: a one-line fix, a config flip, a quick answer from a file already in context.
 

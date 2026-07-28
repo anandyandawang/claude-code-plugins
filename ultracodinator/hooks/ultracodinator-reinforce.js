@@ -10,10 +10,11 @@ process.stdin.on('end', () => {
         'When active: substantive tasks run as Workflow orchestrations — you coordinate, the fleet executes. ' +
         'NEVER spawn the heaviest model in the lineup — it eats tokens like nothing else and belongs only in ' +
         'the main loop, coordinating: every agent() call and every subagent carries an explicit model override ' +
-        'below that tier (omitted = inherit = main-loop model, forbidden), sized by role — one tier down ' +
-        'is the workhorse for implementation and hard verification (hardest stages: workhorse + higher effort, ' +
-        'never the heaviest); the mid tier for tightly-scoped mechanical stages; the lowest tier essentially ' +
-        'unused. You keep decomposition, scripts, stage prompts, reading results between phases, final tests, ' +
+        'below that tier (omitted = inherit = main-loop model, forbidden), sized by role — the mid tier ' +
+        'is the workhorse and default for implementation and verification; the high tier (one below the ' +
+        'coordinator) for the most complex stages (hardest stages: high tier + higher effort, never the ' +
+        'heaviest); the low tier for the simplest mechanical stages. ' +
+        'You keep decomposition, scripts, stage prompts, reading results between phases, final tests, ' +
         'final review, synthesis. Direct work only when orchestrating obviously costs more than the change.'
     }
   }));
