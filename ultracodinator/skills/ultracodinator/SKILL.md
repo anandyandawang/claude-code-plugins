@@ -7,9 +7,11 @@ description: >
   results, and synthesizes — and pushes essentially all execution into Workflow orchestrations.
   Every workflow agent() call and every subagent carries an explicit model override sized to its
   task — the heaviest model in the lineup is never spawned; it eats tokens like nothing else and
-  exists for coordination alone: one tier down is the workhorse for implementation, design, and
-  hard verification; the mid tier for tightly-scoped mechanical stages; the lowest tier
-  essentially unused. Effort overrides follow the same sizing. Never omit the override — omitted
+  exists for coordination alone: the mid tier is the workhorse and default for implementation,
+  design, and verification; the high tier (one below the coordinator) is reserved for the most
+  complex stages — the hardest design, debugging, and judge work; the low tier takes the
+  simplest stages — bulk reading, sweeps, mechanical edits. Effort overrides follow the same
+  sizing. Never omit the override — omitted
   means inherit, and inherit means the main-loop model. Direct edits only when orchestrating
   clearly costs more than the change. Always-on via hooks.
 ---
@@ -42,15 +44,17 @@ dormant: follow the normal Workflow opt-in rules and ignore the rest of this doc
    below that tier. Never omit it — omitted means inherit, and inherit means a fleet of
    main-loop-tier agents burning the scarcest budget in the session on stage work. There is no
    stage, however hard, that justifies spawning the heaviest model; the hardest stages get the
-   workhorse with a higher `effort` instead.
-3. **Size every stage, by role not by name.** One tier below the coordinator sits the workhorse:
-   the default for implementation, design, debugging, and the judge/verify stages that need real
-   judgment. The mid tier takes tightly-scoped mechanical stages — bulk reading, sweeps,
-   find-and-replace-shaped edits, format checks — and never orchestrates. The lowest tier goes
-   essentially unused. Resolve the roles against whatever lineup the session offers, and size
+   high tier with a higher `effort` instead.
+3. **Size every stage, by role not by name.** The mid tier is the workhorse: the default for
+   implementation, design, debugging, and the judge/verify stages that need real judgment.
+   One tier below the coordinator sits the high tier, reserved for the genuinely complex
+   stages — the hardest design calls, the gnarliest debugging, the toughest adversarial
+   verification — where the workhorse would plausibly need rework. The low tier takes the
+   simplest stages — bulk reading, sweeps, find-and-replace-shaped edits, format checks — and
+   never orchestrates. Resolve the roles against whatever lineup the session offers, and size
    `effort` the same way: low for mechanical stages, high only where the judgment is hardest.
    Don't over-downshift — rework from an underpowered stage costs more than the tier gap saves;
-   when in doubt, the workhorse.
+   when in doubt, the workhorse — and when the workhorse is in doubt, the high tier.
 4. **The coordinator's own jobs:** decompose the task, author the workflow scripts, write rich
    stage prompts, read the fleet's returns between phases, run the final tests, review the final
    diff, and synthesize the answer. Failures and findings become the next workflow's stages, not
@@ -70,14 +74,14 @@ its own work before returning. Skimping here is how a fleet turns into a rework 
 
 Ultracode multiplies agent count; this plugin keeps the multiplier off the top-tier meter.
 Coordinator-tier tokens draw from the scarcest budget in the lineup — spending them only on
-planning, scripts, prompts, and review while the workhorse and mid tiers carry the fleet keeps
+planning, scripts, prompts, and review while the high, mid, and low tiers carry the fleet keeps
 ultracode's exhaustiveness affordable instead of exhausting.
 
 ## What this is not
 
 Not a throttle on ultracode — fleet size, fan-out, and adversarial verify stay as ambitious as
 ultracode asks. Not a ban on the coordinator reading, testing, or running commands — judgment
-work stays home. And if the main loop is already running the workhorse tier, the rules relax:
-it may take stage work itself and spawn its own tier when a stage truly warrants it — but the
+work stays home. And if the main loop is already running below the heaviest tier, the rules
+relax: it may take stage work itself and spawn its own tier when a stage truly warrants it — but the
 heaviest model in the lineup stays off-limits as a stage even then. The single invariant: the
 heaviest model coordinates; it is never a stage.
