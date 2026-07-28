@@ -26,6 +26,10 @@ never rides in the fleet.
   `model` override below that tier. An omitted override means inherit, and inherit means
   the main-loop model — forbidden. No stage, however hard, justifies it; the hardest
   stages get the strongest model below it with a higher `effort` instead.
+- **The coordinator's seat.** The heaviest model decomposes the task, authors the
+  workflow scripts, writes rich stage prompts, reads the fleet's returns between phases,
+  runs the final tests, reviews the final diff, and synthesizes the answer. Never a
+  stage, even when a lighter model runs the main loop.
 - **Right-sizing is the coordinator's call.** No fixed tier taxonomy below the heaviest
   model: for each stage, the coordinator weighs what the work actually demands and picks
   the model and `effort` to match, from whatever lineup the session offers. Tightly-scoped
