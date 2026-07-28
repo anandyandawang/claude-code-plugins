@@ -1,0 +1,35 @@
+{
+  "name": "plan-big-execute-small",
+  "description": "The session's main model is the coordinator: it plans, decomposes, briefs, judges, and synthesizes, but never pulls token-heavy raw material — web pages, long files, log dumps, broad search sweeps — through its own context. That reading goes to cheap worker subagents with explicit model overrides, each in its own parallel context window, returning distilled findings backed by evidence (file:line references, exact quotes, URLs) plus what they could not determine. Coverage-shaped work fans out: N independent sub-questions, N workers running concurrently. Briefs carry a floor cost, so bundle related lookups into one brief instead of shredding the work into confetti. Small planning peeks and reads where frontier judgment on the raw material is the whole point stay with the coordinator.",
+  "version": "0.1.0",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pbes-activate.js\"",
+            "timeout": 5,
+            "statusMessage": "Seating the coordinator..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/pbes-reinforce.js\"",
+            "timeout": 5,
+            "statusMessage": "Coordinator briefs the workers..."
+          }
+        ]
+      }
+    ]
+  }
+}
