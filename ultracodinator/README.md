@@ -25,22 +25,19 @@ never rides in the fleet.
   coordinating. Every workflow `agent()` call and every subagent carries an explicit
   `model` override below that tier. An omitted override means inherit, and inherit means
   the main-loop model — forbidden. No stage, however hard, justifies it; the hardest
-  stages get the high tier with a higher `effort` instead.
-- **Per-task sizing, by role not by name.** Resolved against whatever lineup the session
-  offers:
-  - **Heaviest tier** — the coordinator: plans, authors scripts, judges, synthesizes.
-    Never a stage, even when a lighter model runs the main loop.
-  - **High tier (one below the coordinator)** — reserved for the most complex stages:
-    the hardest design calls, the gnarliest debugging, the toughest adversarial
-    verification.
-  - **Mid tier, the workhorse** — the default: implementation, design, debugging, and
-    the judge/verify stages that need real judgment.
-  - **Low tier** — the simplest stages: bulk reading, sweeps, find-and-replace-shaped
-    edits, format checks. Never orchestrates.
-
-  `effort` follows the same sizing. Don't over-downshift — rework from an underpowered
-  stage costs more than the tier gap saves; when in doubt, the workhorse — and when the
-  workhorse is in doubt, the high tier.
+  stages get the strongest model below it with a higher `effort` instead.
+- **The coordinator's seat.** The heaviest model decomposes the task, authors the
+  workflow scripts, writes rich stage prompts, reads the fleet's returns between phases,
+  runs the final tests, reviews the final diff, and synthesizes the answer. Never a
+  stage, even when a lighter model runs the main loop.
+- **Right-sizing is the coordinator's call.** No fixed tier taxonomy below the heaviest
+  model: for each stage, the coordinator weighs what the work actually demands and picks
+  the model and `effort` to match, from whatever lineup the session offers. Tightly-scoped
+  mechanical stages — bulk reading, sweeps, find-and-replace-shaped edits, format checks —
+  ride cheap models at low effort; implementation, design, debugging, and adversarial
+  verification need real judgment and stronger models; the hardest calls get the strongest
+  model below the coordinator at high effort. Don't over-downshift — rework from an
+  underpowered stage costs more than the gap saves; when in doubt, size up.
 - **Narrow escape hatch.** Direct work only when orchestrating obviously costs more than
   the change: a one-line fix, a config flip, a quick answer from a file already in context.
 
@@ -48,8 +45,8 @@ never rides in the fleet.
 
 Ultracode multiplies agent count; this plugin keeps the multiplier off the top-tier meter.
 Coordinator-tier tokens draw from the scarcest budget in the lineup — spending them only on
-planning, scripts, prompts, and review while the cheaper tiers carry the fleet keeps
-ultracode's exhaustiveness affordable instead of exhausting.
+planning, scripts, prompts, and review while right-sized cheaper agents carry the fleet
+keeps ultracode's exhaustiveness affordable instead of exhausting.
 
 ## How it works
 

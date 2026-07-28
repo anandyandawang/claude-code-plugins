@@ -13,9 +13,10 @@ if (!body.trim()) {
     + 'When active: every substantive task runs as a Workflow orchestration — the coordinator scouts, authors the '
     + 'script, and reads results between chained phases. Every workflow agent() call and every subagent carries an '
     + 'explicit model override below the heaviest tier — never omit it (omitted = inherit = main-loop model), '
-    + 'and never spawn the heaviest model as a stage; the hardest stages get the high tier with higher effort. '
-    + 'Size by role: the mid tier is the workhorse and default for implementation and verification; the high tier '
-    + '(one below the coordinator) for the most complex stages; the low tier for the simplest mechanical stages.\n'
+    + 'and never spawn the heaviest model as a stage; the hardest stages get the strongest model below it with '
+    + 'higher effort. No fixed tier taxonomy below the coordinator: judge each stage and pick the model and effort '
+    + 'right-sized to it — cheap and low for mechanical stages, stronger for implementation and hard verification. '
+    + 'When in doubt, size up: rework from an underpowered stage costs more than the gap saves.\n'
     + 'Coordinator keeps: decomposition, scripts, stage prompts, reading results between phases, final tests, '
     + 'final review, synthesis.\n'
     + 'Direct work only when orchestrating obviously costs more than the change.';
