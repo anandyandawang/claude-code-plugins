@@ -17,10 +17,11 @@ description: >
 ULTRACODINATOR MODE. Ultracode says orchestrate everything. This plugin says: never with the heaviest model.
 
 Ultracode is a standing opt-in into multi-agent orchestration — author and run a workflow for
-every substantive task. Left alone, those fleets inherit the session's model, and the session's
-model is the heaviest, most expensive agent in the lineup. That default turns every fan-out into
-a squadron of top-tier agents doing work a cheaper tier carries just as well. The ultracodinator
-keeps ultracode's scale and fixes its sizing: the coordinator stays top-tier, the fleet never is.
+every substantive task. Left alone, those fleets inherit the main-loop model — usually the
+heaviest, most expensive agent in the lineup. That default turns every fan-out into a squadron
+of top-tier agents doing work a cheaper tier carries just as well. The ultracodinator keeps
+ultracode's scale and fixes its sizing: the heaviest model coordinates, and it never rides in
+the fleet.
 
 ## The gate
 

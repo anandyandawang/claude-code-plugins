@@ -6,10 +6,10 @@ never rides in the fleet.
 ## The mentality
 
 > Ultracode is a standing opt-in: author and run a workflow for every substantive task. But
-> left alone, every workflow agent inherits the session's model — the heaviest, most
+> left alone, every workflow agent inherits the main-loop model — usually the heaviest, most
 > expensive agent in the lineup — so every fan-out becomes a squadron of top-tier agents
 > doing work a cheaper tier carries just as well. Keep ultracode's scale, fix its sizing:
-> the coordinator stays top-tier, the fleet never is.
+> the heaviest model coordinates, and it never rides in the fleet.
 
 ## What it enforces
 

@@ -16,7 +16,8 @@ if (!body.trim()) {
     + 'and never spawn the heaviest model as a stage; the hardest stages get the workhorse with higher effort. '
     + 'Size by role: one tier down is the workhorse for implementation and hard verification; the mid tier for '
     + 'tightly-scoped mechanical stages; the lowest tier essentially unused.\n'
-    + 'Coordinator keeps: decomposition, scripts, stage prompts, final tests, final review, synthesis.\n'
+    + 'Coordinator keeps: decomposition, scripts, stage prompts, reading results between phases, final tests, '
+    + 'final review, synthesis.\n'
     + 'Direct work only when orchestrating obviously costs more than the change.';
 }
 
