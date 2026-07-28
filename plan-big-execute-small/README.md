@@ -32,6 +32,12 @@ context stays clean. On the cookbook's own runs the split team came out roughly 
   yourself, re-brief a fresh worker on infrastructure failures, and write the synthesis.
 - **Verify the premise, not just the facts.** When the enumeration matters, spend one worker
   confirming the list of things-to-check instead of drawing it from memory.
+- **Facts come from worker reads, not recall.** When the answer must be true of the world or
+  codebase as it is now, a worker reads the source; the coordinator's memory only proposes what to
+  check.
+- **Workers are the isolation boundary for untrusted input.** Web pages and third-party content
+  get read by workers scoped to search-read-report, so prompt-injection in the raw material never
+  reaches the agent holding the powerful tools.
 - **Never spawn a reading worker at your own tier**, and never omit the model override — omitted
   means inherit, and inherit means coordinator tier.
 
