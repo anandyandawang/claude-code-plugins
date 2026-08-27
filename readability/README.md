@@ -63,7 +63,7 @@ get simpler instead.
 
 ## how it works
 
-Two hooks, always on.
+Three hooks, always on.
 
 - **SessionStart** (`hooks/readability-activate.js`) — loads the full ruleset at the start of the
   session.
@@ -72,11 +72,18 @@ Two hooks, always on.
   the last assistant message from the session transcript, strips code blocks, tables, inline code and
   URLs, and computes the Flesch Reading Ease and the Flesch-Kincaid grade on what is left. Every reply
   with any prose gets a score. A reply under 50 words is marked as a small sample, since tiny samples
-  score noisily. The number comes back as a reference point, so the next reply is calibrated against a
-  real score instead of a guess.
+  score noisily. The number comes back as a reference point, together with a list of any measurable
+  rules the reply broke, so the next reply is calibrated against real feedback instead of a guess.
+- **Stop** (`hooks/readability-enforce.js`) — enforces the measurable rules on every finished reply:
+  average sentence length under 20 words, no sentence over 25 words, no paragraph over 3 sentences,
+  Flesch Reading Ease at 60 or above for replies of 50 or more prose words, and no banned formal
+  words like `utilize` or `in order to`. A reply that fails is blocked once, and Claude must rewrite
+  it with every fix applied. Rules a script cannot judge, like tone and jargon definitions, stay on
+  the self-audit.
 
-Both hooks read from [`skills/readability/SKILL.md`](./skills/readability/SKILL.md). That file is the
-single source of truth. Edit it, and both hooks follow.
+The shared scoring lives in `hooks/prose-metrics.js`. The ruleset text comes from
+[`skills/readability/SKILL.md`](./skills/readability/SKILL.md). That file is the single source of
+truth. Edit it, and the hooks follow.
 
 ## turn off
 

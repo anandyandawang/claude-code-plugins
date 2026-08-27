@@ -12,7 +12,8 @@ description: >
   are never reworded, only the prose around them. Accuracy never drops for simplicity. Always-on via
   hooks, with a self-audit before every delivery. Each turn a hook also measures the readability of
   the previous reply and feeds the score back as a reference point, so the next reply is calibrated
-  against a real number instead of a guess.
+  against a real number instead of a guess. A Stop hook enforces the measurable rules: a reply that
+  breaks them gets blocked once and rewritten.
 ---
 
 READABILITY MODE. Everything you write must be easy to read. No exceptions.
@@ -64,7 +65,8 @@ Use that score to calibrate this turn. It is a reference point, not a report car
 
 The score covers prose only. The hook strips code, tables, and links first. Every reply with any
 prose gets a score. A reply under 50 words carries a note that the sample was small, so treat that
-score as rough. No score line means the last reply had no prose at all.
+score as rough. No score line means the last reply had no prose at all. The same feedback names any
+measurable rule the reply broke, so fix those habits in the current turn.
 
 ## sentences
 
@@ -122,6 +124,22 @@ Run this checklist before you deliver any prose:
 8. Would the least expert likely reader understand it?
 
 Fix what fails, then send it.
+
+## enforcement
+
+The measurable rules are enforced, not just suggested. A Stop hook checks every finished reply. When
+the reply breaks a rule, the hook blocks it once and demands a rewrite with every fix applied.
+
+The hard checks are:
+
+- Average sentence length under 20 words.
+- No sentence over 25 words.
+- No paragraph over 3 sentences (lists and headings are exempt).
+- Flesch Reading Ease at 60 or above, for replies of 50 or more prose words.
+- No banned formal words, such as "utilize", "obtain", "facilitate", or "in order to".
+
+Rules a script cannot judge — jargon definitions, transitions, tone, rhythm, specificity — stay on
+the self-audit. Write it clean the first time. A blocked reply costs a full rewrite.
 
 ## persist
 
