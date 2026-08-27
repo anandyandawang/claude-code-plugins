@@ -13,8 +13,9 @@ It sets one target and holds you to it:
 - **Flesch Reading Ease 60-70**, at a **grade 7-9** level.
 - About 85% of readers understand grade-8 text.
 
-Claude cannot score each response with a tool. So it checks the two drivers the formulas measure:
-sentence length and word length.
+Claude cannot score a reply while it writes it. So it checks the two drivers the formulas measure:
+sentence length and word length. It also gets the measured score of its previous reply each turn, and
+uses that to calibrate.
 
 ## the rules
 
@@ -67,7 +68,11 @@ Two hooks, always on.
 - **SessionStart** (`hooks/readability-activate.js`) — loads the full ruleset at the start of the
   session.
 - **UserPromptSubmit** (`hooks/readability-reinforce.js`) — repeats the rules every turn, so long
-  sessions never drift back into dense prose.
+  sessions never drift back into dense prose. The same hook also scores the previous reply. It reads
+  the last assistant message from the session transcript, strips code blocks, tables, inline code and
+  URLs, and computes the Flesch Reading Ease and the Flesch-Kincaid grade on what is left. Replies
+  with under 50 words of prose are skipped, since a tiny sample scores badly. The number comes back as
+  a reference point, so the next reply is calibrated against a real score instead of a guess.
 
 Both hooks read from [`skills/readability/SKILL.md`](./skills/readability/SKILL.md). That file is the
 single source of truth. Edit it, and both hooks follow.

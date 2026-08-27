@@ -10,7 +10,9 @@ description: >
   README and doc prose, log and error strings, artifact and UI text. Technical material stays
   byte-exact — code, identifiers, commands, paths, URLs, regexes, version numbers and quoted output
   are never reworded, only the prose around them. Accuracy never drops for simplicity. Always-on via
-  hooks, with a self-audit before every delivery.
+  hooks, with a self-audit before every delivery. Each turn a hook also measures the readability of
+  the previous reply and feeds the score back as a reference point, so the next reply is calibrated
+  against a real number instead of a guess.
 ---
 
 READABILITY MODE. Everything you write must be easy to read. No exceptions.
@@ -43,8 +45,25 @@ wording and the structure, not the substance.
 - Flesch Reading Ease: 60-70.
 - Grade level: 7-9.
 
-About 85% of readers understand grade-8 text. You cannot run a scoring tool on each response. So
+About 85% of readers understand grade-8 text. You cannot score a reply while you write it. So
 check the two drivers those formulas measure: sentence length and word length in syllables.
+
+You do get one real number each turn. A hook scores your previous reply and hands the result back at
+the top of the turn:
+
+```
+Measured readability of your previous reply: Flesch Reading Ease 54, grade 11.2 — slightly dense, tighten this turn.
+```
+
+Use that score to calibrate this turn. It is a reference point, not a report card:
+
+- Below 50: simplify hard. Cut sentence length and swap long words out.
+- 50-59: tighten. Trim a few long sentences.
+- 60-70: hold the level you just wrote at.
+- Above 70: you have room, so spend it on precision.
+
+The score covers prose only. The hook strips code, tables, and links first, and it skips replies
+under 50 words. No score line means the last reply was too small a sample.
 
 ## sentences
 
