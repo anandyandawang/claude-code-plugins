@@ -62,8 +62,9 @@ Use that score to calibrate this turn. It is a reference point, not a report car
 - 60-70: hold the level you just wrote at.
 - Above 70: you have room, so spend it on precision.
 
-The score covers prose only. The hook strips code, tables, and links first, and it skips replies
-under 50 words. No score line means the last reply was too small a sample.
+The score covers prose only. The hook strips code, tables, and links first. Every reply with any
+prose gets a score. A reply under 50 words carries a note that the sample was small, so treat that
+score as rough. No score line means the last reply had no prose at all.
 
 ## sentences
 

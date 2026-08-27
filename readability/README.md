@@ -70,9 +70,10 @@ Two hooks, always on.
 - **UserPromptSubmit** (`hooks/readability-reinforce.js`) — repeats the rules every turn, so long
   sessions never drift back into dense prose. The same hook also scores the previous reply. It reads
   the last assistant message from the session transcript, strips code blocks, tables, inline code and
-  URLs, and computes the Flesch Reading Ease and the Flesch-Kincaid grade on what is left. Replies
-  with under 50 words of prose are skipped, since a tiny sample scores badly. The number comes back as
-  a reference point, so the next reply is calibrated against a real score instead of a guess.
+  URLs, and computes the Flesch Reading Ease and the Flesch-Kincaid grade on what is left. Every reply
+  with any prose gets a score. A reply under 50 words is marked as a small sample, since tiny samples
+  score noisily. The number comes back as a reference point, so the next reply is calibrated against a
+  real score instead of a guess.
 
 Both hooks read from [`skills/readability/SKILL.md`](./skills/readability/SKILL.md). That file is the
 single source of truth. Edit it, and both hooks follow.

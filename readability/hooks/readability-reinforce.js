@@ -14,7 +14,7 @@ const STATIC_REMINDER =
   + 'Before you deliver anything, audit it: average sentence length, 90% active voice, small paragraphs, headings where needed, filler cut, jargon defined, reads well aloud. '
   + 'Never trade accuracy for simplicity, and keep technical values byte-exact — code, identifiers, commands, paths, URLs, regexes, version numbers and quoted output are never reworded.';
 
-const MINIMUM_WORDS_TO_SCORE = 50;
+const SMALL_SAMPLE_WORDS = 50;
 
 const DENSE_CEILING = 50;
 const TIGHTEN_CEILING = 60;
@@ -149,7 +149,7 @@ function verdictFor(readingEase) {
 function scoreOf(text) {
   const prose = proseOf(text);
   const words = wordsOf(prose);
-  if (words.length < MINIMUM_WORDS_TO_SCORE) {
+  if (words.length === 0) {
     return null;
   }
   const sentences = countSentences(prose);
@@ -162,13 +162,18 @@ function scoreOf(text) {
   return {
     readingEase,
     grade: fleschKincaidGrade(wordsPerSentence, syllablesPerWord),
-    verdict: verdictFor(readingEase)
+    verdict: verdictFor(readingEase),
+    wordCount: words.length
   };
 }
 
 function measurementSentence(score) {
-  return 'Measured readability of your previous reply: Flesch Reading Ease '
+  const measurement = 'Measured readability of your previous reply: Flesch Reading Ease '
     + score.readingEase + ', grade ' + score.grade.toFixed(1) + ' — ' + score.verdict + '. ';
+  if (score.wordCount >= SMALL_SAMPLE_WORDS) {
+    return measurement;
+  }
+  return measurement + 'The sample was only ' + score.wordCount + ' words, so treat the score as rough. ';
 }
 
 function scoreFromHookInput(rawInput) {
