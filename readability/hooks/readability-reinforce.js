@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
-const { SMALL_SAMPLE_WORDS, ruleCheckOf } = require(path.join(__dirname, 'prose-metrics'));
 
 const STATIC_REMINDER =
   'READABILITY MODE. Every word you write this turn must be easy to read. The scope is ALL output, with no exceptions: '
@@ -14,8 +12,18 @@ const STATIC_REMINDER =
   + 'Cut filler, redundancy, and formal or archaic phrasing. Define jargon and acronyms in plain words at first use. Replace vague claims with specific outcomes. '
   + 'Keep paragraphs to 2-3 sentences. In long documents add a heading every 150-200 words, use lists for steps, and use tables for comparisons. '
   + 'Before you deliver anything, audit it: average sentence length, 90% active voice, small paragraphs, headings where needed, filler cut, jargon defined, reads well aloud. '
-  + 'Never trade accuracy for simplicity, and keep technical values byte-exact — code, identifiers, commands, paths, URLs, regexes, version numbers and quoted output are never reworded. '
-  + 'A Stop hook re-checks the measurable rules on your finished reply and blocks it once for a rewrite when it fails, so write it clean the first time.';
+  + 'Never trade accuracy for simplicity, and keep technical values byte-exact — code, identifiers, commands, paths, URLs, regexes, version numbers and quoted output are never reworded.';
+
+const SMALL_SAMPLE_WORDS = 50;
+
+const DENSE_CEILING = 50;
+const TIGHTEN_CEILING = 60;
+const ON_TARGET_CEILING = 70;
+
+const VERDICT_TOO_DENSE = 'too dense, simplify hard this turn';
+const VERDICT_SLIGHTLY_DENSE = 'slightly dense, tighten this turn';
+const VERDICT_ON_TARGET = 'on target, hold it';
+const VERDICT_VERY_EASY = 'very easy, fine';
 
 function readAllStdin() {
   return new Promise(resolve => {
@@ -61,37 +69,114 @@ function lastAssistantText(transcriptPath) {
   return '';
 }
 
-function measurementSentence(check) {
-  const scores = check.scores;
-  let measurement = 'Measured readability of your previous reply: Flesch Reading Ease '
-    + scores.readingEase + ', grade ' + scores.grade.toFixed(1) + ' — ' + verdictFor(scores.readingEase) + '. ';
-  if (scores.wordCount < SMALL_SAMPLE_WORDS) {
-    measurement += 'The sample was only ' + scores.wordCount + ' words, so treat the score as rough. ';
-  }
-  if (check.violations.length > 0) {
-    measurement += 'Rule check on it: ' + check.violations.join('; ') + '. ';
-  }
-  return measurement;
+function removeFencedCodeBlocks(text) {
+  return text.replace(/```[\s\S]*?```/g, ' ');
 }
 
-const DENSE_CEILING = 50;
-const TIGHTEN_CEILING = 60;
-const ON_TARGET_CEILING = 70;
+function removeTableLines(text) {
+  return text
+    .split('\n')
+    .filter(line => !line.trim().startsWith('|'))
+    .join('\n');
+}
+
+function removeInlineCodeSpans(text) {
+  return text.replace(/`[^`]*`/g, ' ');
+}
+
+function removeUrls(text) {
+  return text.replace(/https?:\/\/\S+/g, ' ');
+}
+
+function removeMarkdownMarkers(text) {
+  return text
+    .split('\n')
+    .map(line => line.replace(/^\s*(?:[#>]+|[-*]+|\d+\.)\s*/, ''))
+    .join('\n')
+    .replace(/\*+/g, '');
+}
+
+function proseOf(text) {
+  return removeMarkdownMarkers(removeUrls(removeInlineCodeSpans(removeTableLines(removeFencedCodeBlocks(text)))));
+}
+
+function countSentences(prose) {
+  return prose.split(/[.!?]+/).filter(part => part.trim().length > 0).length;
+}
+
+function wordsOf(prose) {
+  return prose.split(/\s+/).filter(token => /[a-zA-Z]/.test(token));
+}
+
+function countSyllables(word) {
+  const letters = word.toLowerCase().replace(/[^a-z]/g, '');
+  if (letters.length === 0) {
+    return 1;
+  }
+  const vowelGroups = letters.match(/[aeiouy]+/g);
+  let syllables = vowelGroups ? vowelGroups.length : 0;
+  if (letters.length > 2 && letters.endsWith('e') && !letters.endsWith('le')) {
+    syllables -= 1;
+  }
+  return Math.max(1, syllables);
+}
+
+function totalSyllables(words) {
+  return words.reduce((sum, word) => sum + countSyllables(word), 0);
+}
+
+function fleschReadingEase(wordsPerSentence, syllablesPerWord) {
+  return Math.round(206.835 - 1.015 * wordsPerSentence - 84.6 * syllablesPerWord);
+}
+
+function fleschKincaidGrade(wordsPerSentence, syllablesPerWord) {
+  return Math.round((0.39 * wordsPerSentence + 11.8 * syllablesPerWord - 15.59) * 10) / 10;
+}
 
 function verdictFor(readingEase) {
   if (readingEase < DENSE_CEILING) {
-    return 'too dense, simplify hard this turn';
+    return VERDICT_TOO_DENSE;
   }
   if (readingEase < TIGHTEN_CEILING) {
-    return 'slightly dense, tighten this turn';
+    return VERDICT_SLIGHTLY_DENSE;
   }
   if (readingEase <= ON_TARGET_CEILING) {
-    return 'on target, hold it';
+    return VERDICT_ON_TARGET;
   }
-  return 'very easy, fine';
+  return VERDICT_VERY_EASY;
 }
 
-function checkFromHookInput(rawInput) {
+function scoreOf(text) {
+  const prose = proseOf(text);
+  const words = wordsOf(prose);
+  if (words.length === 0) {
+    return null;
+  }
+  const sentences = countSentences(prose);
+  if (sentences === 0) {
+    return null;
+  }
+  const wordsPerSentence = words.length / sentences;
+  const syllablesPerWord = totalSyllables(words) / words.length;
+  const readingEase = fleschReadingEase(wordsPerSentence, syllablesPerWord);
+  return {
+    readingEase,
+    grade: fleschKincaidGrade(wordsPerSentence, syllablesPerWord),
+    verdict: verdictFor(readingEase),
+    wordCount: words.length
+  };
+}
+
+function measurementSentence(score) {
+  const measurement = 'Measured readability of your previous reply: Flesch Reading Ease '
+    + score.readingEase + ', grade ' + score.grade.toFixed(1) + ' — ' + score.verdict + '. ';
+  if (score.wordCount >= SMALL_SAMPLE_WORDS) {
+    return measurement;
+  }
+  return measurement + 'The sample was only ' + score.wordCount + ' words, so treat the score as rough. ';
+}
+
+function scoreFromHookInput(rawInput) {
   try {
     const input = parseJsonOrNull(rawInput);
     if (!input || typeof input.transcript_path !== 'string') {
@@ -101,8 +186,7 @@ function checkFromHookInput(rawInput) {
     if (text.length === 0) {
       return null;
     }
-    const check = ruleCheckOf(text);
-    return check.scores ? check : null;
+    return scoreOf(text);
   } catch (error) {
     return null;
   }
@@ -118,6 +202,6 @@ function emit(additionalContext) {
 }
 
 readAllStdin().then(rawInput => {
-  const check = checkFromHookInput(rawInput);
-  emit(check ? measurementSentence(check) + STATIC_REMINDER : STATIC_REMINDER);
+  const score = scoreFromHookInput(rawInput);
+  emit(score ? measurementSentence(score) + STATIC_REMINDER : STATIC_REMINDER);
 });
