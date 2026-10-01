@@ -17,6 +17,7 @@ import {
   describeSettings,
   dialSpec,
   findBreaches,
+  formatDuration,
   formatLimit,
   formatStatusLine,
   measuredValue,
@@ -34,10 +35,10 @@ type Engine = Pick<EngineInterface, 'state' | 'store' | 'ui' | 'prompt' | 'sessi
 const PANE_ID = 'style-sliders'
 const STORE_KEY = 'settings'
 const TARGETS_SECTION_ID = 'style-sliders:targets'
-const PANE_ROWS = 18
+const PANE_ROWS = 20
 
 const LABEL_WIDTH = 16
-const LAST_LABEL_WIDTH = 20
+const LAST_LABEL_WIDTH = 24
 const LIMIT_WIDTH = 13
 const STEP_BUTTON_WIDTH = 5
 const TOGGLE_BUTTON_WIDTH = 7
@@ -57,15 +58,29 @@ const FAIL_MARK = ' ✗'
 const settings = atom({ plugin: 'style-sliders', key: 'settings' } as const, DEFAULT_SETTINGS)
 const last = atom({ plugin: 'style-sliders', key: 'last' } as const, null)
 
+const currentReading = (stored: unknown): StyleReading | null => {
+  if (typeof stored !== 'object' || stored === null) return null
+  const { readSeconds } = stored as { readSeconds?: unknown }
+  return typeof readSeconds === 'number' && Number.isFinite(readSeconds)
+    ? (stored as StyleReading)
+    : null
+}
+
+const readLast = async ($: Engine): Promise<StyleReading | null> =>
+  currentReading(await read($, last))
+
+const readSettings = async ($: Engine): Promise<StyleSettings> =>
+  sanitizeSettings(await read($, settings))
+
 const refreshStatus = async ($: Engine): Promise<void> => {
-  $.ui.status(formatStatusLine(await read($, settings), await read($, last)))
+  $.ui.status(formatStatusLine(await readSettings($), await readLast($)))
 }
 
 const changeSettings = async (
   $: Engine,
   change: (current: StyleSettings) => StyleSettings,
 ): Promise<StyleSettings> => {
-  const changed = await update($, settings, change)
+  const changed = await update($, settings, current => change(sanitizeSettings(current)))
   await $.store.set(STORE_KEY, changed)
   await refreshStatus($)
   return changed
@@ -89,7 +104,7 @@ const measureAnswer = async ($: Engine, answer: string): Promise<void> => {
   const reading = measureText(answer)
   if (reading === null) return
   await recordReading($, reading)
-  const breaches = findBreaches(await read($, settings), reading)
+  const breaches = findBreaches(await readSettings($), reading)
   if (breaches.length > 0) $.ui.toast(breachToast(breaches))
 }
 
@@ -131,7 +146,7 @@ const openPane = async ($: Engine): Promise<string> => {
   const headline = opened.isPlaced
     ? await openedHeadline($)
     : `Output style sliders are open but not drawn yet: ${opened.reason}`
-  const summary = describeSettings(await read($, settings), await read($, last))
+  const summary = describeSettings(await readSettings($), await readLast($))
   return [headline, PANE_MISSING_HINT, '', summary].join('\n')
 }
 
@@ -141,17 +156,17 @@ const runSlidersCommand = async ($: Engine, args: string): Promise<{ text: strin
   if (command.kind === 'help') return { text: SLIDERS_USAGE }
   if (command.kind === 'error') return { text: command.message }
   if (command.kind === 'show') {
-    return { text: describeSettings(await read($, settings), await read($, last)) }
+    return { text: describeSettings(await readSettings($), await readLast($)) }
   }
   const changed = await changeSettings($, current => applySlidersCommand(current, command))
-  const description = describeSettings(changed, await read($, last))
+  const description = describeSettings(changed, await readLast($))
   return { text: `${confirmationFor(command, changed)}\n${description}` }
 }
 
 const reviseLastReply = async ($: Engine): Promise<void> => {
-  const reading = await read($, last)
+  const reading = await readLast($)
   if (reading === null) return
-  const current = await read($, settings)
+  const current = await readSettings($)
   await $.prompt.submit({ text: composeRevisionPrompt(current, reading), asUser: true })
   await $.ui.close({ id: PANE_ID })
 }
@@ -163,11 +178,14 @@ type LastStatus = 'pass' | 'fail' | 'untracked'
 
 type LastLine = { id: DialId; text: string; status: LastStatus }
 
-const formatMeasured = (id: DialId, measured: number): string =>
-  id === 'gradeLevel' || id === 'readingEase' ? measured.toFixed(1) : `${Math.round(measured)}`
+const formatMeasured = (id: DialId, measured: number): string => {
+  if (id === 'readTime') return formatDuration(measured)
+  return id === 'gradeLevel' || id === 'readingEase' ? measured.toFixed(1) : `${Math.round(measured)}`
+}
 
 const lastLabel = (id: DialId, current: StyleSettings): string => {
   if (id === 'totalWords') return 'Words'
+  if (id === 'readTime') return 'Read time'
   if (id === 'paragraphWords') return 'Longest paragraph'
   if (id === 'sentenceWords') return 'Longest sentence'
   if (id === 'gradeLevel') return `Grade (${GRADE_FORMULA_LABELS[current.gradeFormula]})`
@@ -196,7 +214,7 @@ export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'sliders',
-      description: 'Tune output style sliders: word limits, grade level, reading ease',
+      description: 'Tune output style sliders: word limits, read time, grade level, reading ease',
     })
     await loadSettings($)
 
@@ -216,7 +234,7 @@ export const register: Register = on => {
 
   on('prompt.compose', async ($, e, next) => {
     const composed = await next(e)
-    const text = composeTargetsSection(await read($, settings))
+    const text = composeTargetsSection(await readSettings($))
     if (text === null) return composed
 
     return {
@@ -226,7 +244,7 @@ export const register: Register = on => {
   }).catch((_, e, next) => next(e))
 
   on('prompt.submit', async ($, e, next) => {
-    const text = composeTurnContext(await read($, settings), await read($, last))
+    const text = composeTurnContext(await readSettings($), await readLast($))
 
     return text === null ? next(e) : next({ ...e, context: [...(e.context ?? []), text] })
   }).catch((_, e, next) => next(e))
@@ -241,8 +259,8 @@ export const register: Register = on => {
 
   on('ui.render', { component: 'Pane', requestId: PANE_ID }, async ($, e) => {
     const { Box, Text, Button } = $.ui.resolve(e)
-    const current = await read($, settings)
-    const reading = await read($, last)
+    const current = await readSettings($)
+    const reading = await readLast($)
     const barWidth = barWidthFor(e.props.bodyColumns)
     const lines = reading === null ? [] : lastLines(current, reading)
     const hasBreaches = reading !== null && findBreaches(current, reading).length > 0

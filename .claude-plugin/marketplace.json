@@ -82,7 +82,7 @@
     {
       "name": "style-sliders",
       "source": "./style-sliders",
-      "description": "Sliders for how Claude writes: total words, paragraph words, sentence words, grade level and reading ease. Each reply is measured, with a status line, a toast when a limit is broken and a Revise button. Needs a Claude Code build with function hooks.",
+      "description": "Sliders for how Claude writes: total words, read time, paragraph words, sentence words, grade level and reading ease. Each reply is measured, with a status line, a toast when a limit is broken and a Revise button. Needs a Claude Code build with function hooks.",
       "category": "productivity"
     }
   ]

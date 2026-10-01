@@ -4,6 +4,10 @@ export type ProseBlock = { kind: 'paragraph' | 'heading'; text: string }
 
 type Fence = { character: string; length: number }
 
+type FenceSplit = { textLines: string[]; codeLines: string[] }
+
+type Extraction = { blocks: ProseBlock[]; codeWords: number; tableWords: number }
+
 type BlockStats = {
   kind: ProseBlock['kind']
   words: number
@@ -19,6 +23,13 @@ const SMALL_SAMPLE_WORDS = 50
 const POLYSYLLABLE_MIN_SYLLABLES = 3
 const SHORT_WORD_LENGTH = 3
 const MAX_READING_EASE = 100
+const AVERAGE_WORDS_PER_MINUTE = 238
+const TYPICAL_SYLLABLES_PER_WORD = 1.5
+const CODE_WORDS_PER_MINUTE = AVERAGE_WORDS_PER_MINUTE / 2
+const SECONDS_PER_MINUTE = 60
+const PROSE_SYLLABLES_PER_SECOND = (AVERAGE_WORDS_PER_MINUTE * TYPICAL_SYLLABLES_PER_WORD) / SECONDS_PER_MINUTE
+const CODE_WORDS_PER_SECOND = CODE_WORDS_PER_MINUTE / SECONDS_PER_MINUTE
+const TABLE_WORDS_PER_SECOND = AVERAGE_WORDS_PER_MINUTE / SECONDS_PER_MINUTE
 
 const FENCE_LINE = /^\s*(`{3,}|~{3,})(.*)$/
 const HORIZONTAL_RULE = /^\s*([-*_])(?:\s*\1){2,}\s*$/
@@ -29,6 +40,8 @@ const REFERENCE_DEFINITION = /^\s{0,3}\[[^\]]+\]:\s*\S+/
 const TASK_BOX = /^\[[ xX]\]\s+/
 const CLOSING_HASHES = /\s+#+\s*$/
 const WORD_PATTERN = /[\p{L}\p{N}]+(?:['’._-][\p{L}\p{N}]+)*/gu
+const CODE_TOKEN = /[A-Za-z0-9_]+/g
+const INLINE_CODE_SPAN = /(`+)([\s\S]*?)\1/g
 const TOKEN_PATTERN = /[\p{L}\p{N}]+(?:['’._-][\p{L}\p{N}]+)*|[.!?…]+/gu
 const TERMINATOR_START = /^[.!?…]/
 const CLOSING_QUOTES = /["'”’)\]»]/
@@ -76,9 +89,14 @@ const CONTEXTUAL_ABBREVIATIONS: ReadonlySet<string> = new Set(['a.m', 'p.m', 'et
 
 const NUMBERED_ABBREVIATION = 'no'
 
-const INLINE_RULES: readonly (readonly [RegExp, string])[] = [
+type InlineRule = readonly [RegExp, string]
+
+const HIDDEN_CONTENT_RULES: readonly InlineRule[] = [
   [/<!--[\s\S]*?-->/g, ' '],
   [/!\[[^\]]*\]\((?:[^()]|\([^()]*\))*\)/g, ' '],
+]
+
+const TEXT_RULES: readonly InlineRule[] = [
   [/(`+)[\s\S]*?\1/g, ' '],
   [/\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)/g, '$1'],
   [/\[([^\]]+)\]\[[^\]]*\]/g, '$1'],
@@ -91,6 +109,8 @@ const INLINE_RULES: readonly (readonly [RegExp, string])[] = [
   [/\*/g, ''],
   [/(?<![\p{L}\p{N}])_+|_+(?![\p{L}\p{N}])/gu, ''],
 ]
+
+const INLINE_RULES: readonly InlineRule[] = [...HIDDEN_CONTENT_RULES, ...TEXT_RULES]
 
 const IRREGULAR_SYLLABLES: ReadonlyMap<string, number> = new Map([
   ['area', 3],
@@ -142,6 +162,8 @@ const SYLLABLE_PART_SEPARATOR = /[-_]/
 
 const isBlank = (line: string): boolean => line.trim() === ''
 
+const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0)
+
 const stripBlockquote = (line: string): string => {
   let stripped = line
   while (BLOCKQUOTE_PREFIX.test(stripped)) stripped = stripped.replace(BLOCKQUOTE_PREFIX, '')
@@ -162,18 +184,20 @@ const isClosingFence = (line: string, fence: Fence): boolean => {
   return trimmed.length >= fence.length && trimmed === fence.character.repeat(trimmed.length)
 }
 
-const removeFencedCode = (lines: readonly string[]): string[] => {
-  const kept: string[] = []
+const splitFencedCode = (lines: readonly string[]): FenceSplit => {
+  const textLines: string[] = []
+  const codeLines: string[] = []
   let openFence: Fence | null = null
   for (const line of lines) {
     if (openFence) {
       if (isClosingFence(line, openFence)) openFence = null
+      else codeLines.push(line)
       continue
     }
     openFence = openingFence(line)
-    kept.push(openFence ? '' : line)
+    textLines.push(openFence ? '' : line)
   }
-  return kept
+  return { textLines, codeLines }
 }
 
 const isTableLine = (line: string): boolean => {
@@ -185,8 +209,19 @@ const isTableLine = (line: string): boolean => {
 const isIgnoredLine = (line: string): boolean =>
   isTableLine(line) || HORIZONTAL_RULE.test(line) || REFERENCE_DEFINITION.test(line)
 
-const cleanInline = (text: string): string =>
-  INLINE_RULES.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text)
+const applyRules = (text: string, rules: readonly InlineRule[]): string =>
+  rules.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text)
+
+const cleanInline = (text: string): string => applyRules(text, INLINE_RULES)
+
+const countCodeTokens = (text: string): number => text.match(CODE_TOKEN)?.length ?? 0
+
+const countInlineCodeWords = (text: string): number =>
+  sum(
+    Array.from(applyRules(text, HIDDEN_CONTENT_RULES).matchAll(INLINE_CODE_SPAN), (match) =>
+      countCodeTokens(match[2] ?? ''),
+    ),
+  )
 
 export const extractWords = (text: string): string[] => Array.from(text.matchAll(WORD_PATTERN), (match) => match[0])
 
@@ -223,12 +258,30 @@ const collectBlocks = (lines: readonly string[]): ProseBlock[] => {
   return blocks
 }
 
-export const extractBlocks = (markdown: string): ProseBlock[] => {
-  const lines = removeFencedCode(markdown.replace(/\r\n?/g, '\n').split('\n'))
-  return collectBlocks(lines)
-    .map((block) => ({ kind: block.kind, text: cleanInline(block.text).replace(/\s+/g, ' ').trim() }))
-    .filter((block) => countWords(block.text) > 0)
+const cleanBlock = (block: ProseBlock): ProseBlock => ({
+  kind: block.kind,
+  text: cleanInline(block.text).replace(/\s+/g, ' ').trim(),
+})
+
+const hasWords = (block: ProseBlock): boolean => countWords(block.text) > 0
+
+const countTableWords = (line: string): number => countWords(cleanInline(line))
+
+export const extractContent = (markdown: string): Extraction => {
+  const { textLines, codeLines } = splitFencedCode(markdown.replace(/\r\n?/g, '\n').split('\n'))
+  const rawBlocks = collectBlocks(textLines)
+  const tableLines = textLines.map(stripBlockquote).filter(isTableLine)
+  return {
+    blocks: rawBlocks.map(cleanBlock).filter(hasWords),
+    codeWords:
+      sum(codeLines.map(countCodeTokens)) +
+      sum(rawBlocks.map((block) => countInlineCodeWords(block.text))) +
+      sum(tableLines.map(countInlineCodeWords)),
+    tableWords: sum(tableLines.map(countTableWords)),
+  }
 }
+
+export const extractBlocks = (markdown: string): ProseBlock[] => extractContent(markdown).blocks
 
 export const extractProse = (markdown: string): string =>
   extractBlocks(markdown)
@@ -340,9 +393,7 @@ const describeBlock = (block: ProseBlock): BlockStats => {
   }
 }
 
-const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0)
-
-export const computeStats = (blocks: readonly ProseBlock[]): TextStats => {
+export const computeStats = ({ blocks, codeWords, tableWords }: Extraction): TextStats => {
   const described = blocks.map(describeBlock)
   const paragraphs = described.filter((block) => block.kind === 'paragraph')
   return {
@@ -354,8 +405,17 @@ export const computeStats = (blocks: readonly ProseBlock[]): TextStats => {
     polysyllables: sum(described.map((block) => block.polysyllables)),
     longestParagraphWords: Math.max(0, ...paragraphs.map((block) => block.words)),
     longestSentenceWords: Math.max(0, ...described.flatMap((block) => block.sentenceWordCounts)),
+    codeWords,
+    tableWords,
   }
 }
+
+export const computeReadSeconds = (stats: TextStats): number =>
+  Math.round(
+    stats.syllables / PROSE_SYLLABLES_PER_SECOND +
+      stats.codeWords / CODE_WORDS_PER_SECOND +
+      stats.tableWords / TABLE_WORDS_PER_SECOND,
+  )
 
 const round1 = (value: number): number => Math.round(value * 10) / 10
 
@@ -388,13 +448,26 @@ const computeGrades = (counts: Counts): Record<GradeFormula, number> =>
     Object.entries(GRADE_FORMULA_FUNCTIONS).map(([formula, compute]) => [formula, toGrade(compute(counts))]),
   ) as Record<GradeFormula, number>
 
+const NO_PROSE_GRADES: Record<GradeFormula, number> = {
+  'flesch-kincaid': 0,
+  'gunning-fog': 0,
+  smog: 0,
+  'coleman-liau': 0,
+  'automated-readability': 0,
+}
+
+const hasNothingToRead = (stats: TextStats): boolean =>
+  stats.words === 0 && stats.codeWords === 0 && stats.tableWords === 0
+
 export const measureText = (markdown: string): StyleReading | null => {
-  const stats = computeStats(extractBlocks(markdown))
-  if (stats.words === 0) return null
+  const stats = computeStats(extractContent(markdown))
+  if (hasNothingToRead(stats)) return null
+  const hasProse = stats.words > 0
   return {
     stats,
-    grades: computeGrades(stats),
-    readingEase: toReadingEase(fleschReadingEase(stats)),
+    grades: hasProse ? computeGrades(stats) : { ...NO_PROSE_GRADES },
+    readingEase: hasProse ? toReadingEase(fleschReadingEase(stats)) : MAX_READING_EASE,
+    readSeconds: computeReadSeconds(stats),
     isSmallSample: stats.words < SMALL_SAMPLE_WORDS,
   }
 }

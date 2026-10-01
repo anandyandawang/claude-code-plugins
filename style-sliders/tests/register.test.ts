@@ -2,7 +2,8 @@ import { describe, expect, test } from 'claude-code/testing'
 import type { Engine } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
-import { DEFAULT_SETTINGS, DIAL_SPECS } from '../hooks/dials'
+import { DEFAULT_SETTINGS, DIAL_SPECS, dialSpec, formatLimit } from '../hooks/dials'
+import { measureText } from '../hooks/metrics'
 import type { StyleReading, StyleSettings } from '../types'
 
 const SURFACES = ['terminal', 'desktop'] as const
@@ -14,12 +15,49 @@ const PANE_PROPS = {
   isFocused: true,
   bodyColumns: 80,
   placement: 'inline',
-  scroll: { offset: 0, bodyRows: 18 },
+  scroll: { offset: 0, bodyRows: 20 },
   view: {},
 } as const
 
 const SHORT_SENTENCE = 'This is a plain sentence about nothing much.'
 const LONG_ANSWER = Array.from({ length: 6 }, () => SHORT_SENTENCE).join(' ')
+const CODE_TOKEN_COUNT = 120
+const CODE_LINE = Array.from({ length: CODE_TOKEN_COUNT }, (_, index) => `token${index}`).join(' ')
+const CODE_ANSWER = `${LONG_ANSWER}\n\n\`\`\`ts\n${CODE_LINE}\n\`\`\``
+const LIMIT_WIDTH = 13
+
+const STALE_READING = {
+  stats: {
+    words: 48,
+    sentences: 6,
+    paragraphs: 1,
+    syllables: 78,
+    letters: 190,
+    polysyllables: 0,
+    longestParagraphWords: 48,
+    longestSentenceWords: 8,
+  },
+  grades: {
+    'flesch-kincaid': 3,
+    'gunning-fog': 4,
+    smog: 5,
+    'coleman-liau': 6,
+    'automated-readability': 2,
+  },
+  readingEase: 90,
+  isSmallSample: false,
+} as const
+
+const OLD_SHAPE_SETTINGS = {
+  gradeFormula: 'flesch-kincaid',
+  dials: {
+    totalWords: { isOn: true, value: 150 },
+    paragraphWords: { isOn: false, value: 80 },
+    sentenceWords: { isOn: false, value: 20 },
+    gradeLevel: { isOn: false, value: 8 },
+    readingEase: { isOn: false, value: 60 },
+  },
+} as const
 
 type Submitted = { text: string; context: readonly string[] | undefined; asUser: boolean }
 
@@ -34,7 +72,12 @@ type World = {
   last: () => StyleReading | null
 }
 
-const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
+const buildWorld = (
+  on: On,
+  entries: Record<string, unknown> = {},
+  storedLast?: unknown,
+  storedSettings?: unknown,
+): World => {
   const stored = new Map<string, unknown>(Object.entries(entries))
   let settings: StyleSettings = DEFAULT_SETTINGS
   let last: StyleReading | null = null
@@ -58,6 +101,16 @@ const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
     if (e.key === 'last') last = e.value as StyleReading | null
     return next(e)
   })
+  if (storedSettings !== undefined) {
+    on('state.get', (_, e, next) =>
+      e.key === 'settings' ? { value: { value: storedSettings, version: 1 } } : next(e),
+    )
+  }
+  if (storedLast !== undefined) {
+    on('state.get', (_, e, next) =>
+      e.key === 'last' ? { value: { value: storedLast, version: 1 } } : next(e),
+    )
+  }
   on('ui.status', (_, e) => {
     world.statuses.push(e.text)
     return { value: undefined }
@@ -247,6 +300,56 @@ describe('pane', () => {
       await ui.unmount()
     })
 
+    test(`draws the read time row and its buttons on ${surface}`, async ($, on) => {
+      buildWorld(on)
+      const ui = await mountPane($, surface)
+
+      expect(await ui.find({ type: 'Text', text: 'Read time' })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: '≤ 1 min' })).toBeDefined()
+      expect(await ui.find({ type: 'Button', key: 'readTime:down' })).toBeDefined()
+      expect(await ui.find({ type: 'Button', key: 'readTime:up' })).toBeDefined()
+      expect((await ui.find({ key: 'readTime:toggle' }))?.props.label).toBe('off')
+      await ui.unmount()
+    })
+
+    test(`read time up, down and toggle change settings and store on ${surface}`, async ($, on) => {
+      const world = buildWorld(on)
+      const ui = await mountPane($, surface)
+
+      await ui.press({ key: 'readTime:up' })
+      expect(world.settings().dials.readTime).toEqual({ isOn: true, value: 90 })
+      expect(readStoredSettings(world)).toEqual(world.settings())
+      expect(await ui.find({ type: 'Text', text: '≤ 1.5 min' })).toBeDefined()
+      expect((await ui.find({ key: 'readTime:toggle' }))?.props.label).toBe('on')
+
+      await ui.press({ key: 'readTime:down' })
+      await ui.press({ key: 'readTime:down' })
+      expect(world.settings().dials.readTime.value).toBe(45)
+      expect(await ui.find({ type: 'Text', text: '≤ 45 sec' })).toBeDefined()
+      expect(world.statuses.at(-1)).toContain('read ≤45s')
+
+      await ui.press({ key: 'readTime:toggle' })
+      expect(world.settings().dials.readTime).toEqual({ isOn: false, value: 45 })
+      expect(readStoredSettings(world)).toEqual(world.settings())
+      expect((await ui.find({ key: 'readTime:toggle' }))?.props.label).toBe('off')
+      expect(world.settings().dials.totalWords).toEqual(DEFAULT_SETTINGS.dials.totalWords)
+      await ui.unmount()
+    })
+
+    test(`shows the read time of the last reply with a mark on ${surface}`, async ($, on) => {
+      buildWorld(on)
+      await runSliders($, 'read 10')
+      await completeTurn($, LONG_ANSWER)
+      const ui = await mountPane($, surface)
+      const seconds = measureText(LONG_ANSWER)?.readSeconds ?? 0
+
+      expect(seconds).toBeGreaterThan(10)
+      expect(await ui.find({ type: 'Box', text: new RegExp(`^Read time\\s+${seconds} sec ✗$`) })).toBeDefined()
+      expect(await ui.find({ type: 'Box', text: /^Words\s+48$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Button', key: 'revise' })).toBeDefined()
+      await ui.unmount()
+    })
+
     test(`close button closes the pane on ${surface}`, async ($, on) => {
       const world = buildWorld(on)
       const ui = await mountPane($, surface)
@@ -270,6 +373,17 @@ const mountPaneAt = ($: Engine, bodyColumns: number) =>
 const FIXED_ROW_WIDTH = 51
 
 describe('pane width', () => {
+  test('every limit text fits the limit column', () => {
+    for (const spec of DIAL_SPECS) {
+      for (const step of spec.steps) {
+        expect(formatLimit(spec, step).length).toBeLessThanOrEqual(LIMIT_WIDTH)
+      }
+    }
+    expect(formatLimit(dialSpec('readTime'), 90)).toBe('≤ 1.5 min')
+    expect(formatLimit(dialSpec('readTime'), 45)).toBe('≤ 45 sec')
+  })
+
+
   for (const bodyColumns of [57, 58, 70, 200]) {
     test(`a dial row fits ${bodyColumns} columns`, async ($, on) => {
       buildWorld(on)
@@ -323,6 +437,94 @@ describe('pane width', () => {
   }
 })
 
+describe('stale reading from a previous version', () => {
+  test('the pane treats it as no reading', async ($, on) => {
+    buildWorld(on, {}, STALE_READING)
+    const ui = await mountPane($, 'terminal')
+
+    expect(await ui.find({ type: 'Text', text: 'No reply measured yet.' })).toBeDefined()
+    expect(await ui.find({ type: 'Button', key: 'revise' })).toBeUndefined()
+    expect(await ui.find({ type: 'Text', text: /^Read time\s+NaN/ })).toBeUndefined()
+    await ui.unmount()
+  })
+
+  test('the status line and the next prompt leave it out', async ($, on) => {
+    const world = buildWorld(on, {}, STALE_READING)
+    await runSliders($, 'words 25')
+    await submitPrompt($, 'hello')
+    const context = world.submitted.at(-1)?.context
+
+    expect(world.statuses.at(-1)).toContain('≤25w')
+    expect(world.statuses.at(-1)).not.toContain('last')
+    expect(context).toHaveLength(1)
+    expect(context?.[0]).toContain('Style limits for this reply')
+    expect(context?.[0]).not.toContain('Last reply:')
+  })
+
+  test('show and the pane summary report no reply measured', async ($, on) => {
+    buildWorld(on, {}, STALE_READING)
+    const shown = await runSliders($, 'show')
+    const opened = await runSliders($, '')
+
+    expect(shown.text).toContain('No reply measured yet.')
+    expect(shown.text).not.toContain('NaN')
+    expect(opened.text).toContain('No reply measured yet.')
+  })
+
+  test('a command that changes settings reports no reply measured', async ($, on) => {
+    buildWorld(on, {}, STALE_READING)
+    const result = await runSliders($, 'words 100')
+
+    expect(result.text).toContain('No reply measured yet.')
+    expect(result.text).not.toContain('NaN')
+  })
+
+  test('a reading without a finite read time is ignored', async ($, on) => {
+    const world = buildWorld(on, {}, { ...STALE_READING, readSeconds: null })
+    await runSliders($, 'words 25')
+
+    expect(world.statuses.at(-1)).not.toContain('last')
+  })
+
+  test('a reading with a read time is used', async ($, on) => {
+    const world = buildWorld(on, {}, { ...STALE_READING, readSeconds: 20 })
+    await runSliders($, 'words 25')
+
+    expect(world.statuses.at(-1)).toContain('last 48w')
+  })
+})
+
+describe('settings from before read time existed', () => {
+  test('show lists read time off at its default', async ($, on) => {
+    buildWorld(on, {}, undefined, OLD_SHAPE_SETTINGS)
+    const shown = await runSliders($, 'show')
+
+    expect(shown.text).toContain('Read time: off, ≤ 1 min')
+  })
+
+  test('the pane mounts and lists the read time row', async ($, on) => {
+    buildWorld(on, {}, undefined, OLD_SHAPE_SETTINGS)
+    const ui = await mountPane($, 'terminal')
+
+    expect(await ui.find({ type: 'Text', text: /^Read time/ })).toBeDefined()
+    await ui.unmount()
+  })
+
+  test('prompt.compose still adds the targets section', async ($, on) => {
+    buildWorld(on, {}, undefined, OLD_SHAPE_SETTINGS)
+    const composed = await composePrompt($)
+
+    expect(composed.sections.map(section => section.id)).toEqual(['base', 'style-sliders:targets'])
+  })
+
+  test('prompt.submit still attaches the total words limit', async ($, on) => {
+    const world = buildWorld(on, {}, undefined, OLD_SHAPE_SETTINGS)
+    await submitPrompt($, 'hello')
+
+    expect(world.submitted.at(-1)?.context?.[0]).toContain('150 words')
+  })
+})
+
 describe('prompt.compose', () => {
   test('adds no section while every dial is off', async ($, on) => {
     buildWorld(on)
@@ -359,6 +561,37 @@ describe('turn.complete', () => {
 
     expect(world.last()?.stats.words).toBe(48)
     expect(world.toasts).toEqual([])
+  })
+
+  test('stores the read time of a plain answer', async ($, on) => {
+    const world = buildWorld(on)
+    await completeTurn($, LONG_ANSWER)
+
+    expect(world.last()?.readSeconds).toBe(measureText(LONG_ANSWER)?.readSeconds)
+    expect(world.last()?.readSeconds).toBeGreaterThan(0)
+  })
+
+  test('an answer with a code block reads longer than its prose alone', async ($, on) => {
+    const world = buildWorld(on)
+    await completeTurn($, LONG_ANSWER)
+    const proseSeconds = world.last()?.readSeconds ?? 0
+    await completeTurn($, CODE_ANSWER)
+
+    expect(world.last()?.stats.codeWords).toBe(CODE_TOKEN_COUNT)
+    expect(world.last()?.stats.words).toBe(48)
+    expect(world.last()?.readSeconds).toBeGreaterThan(proseSeconds)
+  })
+
+  test('a code block alone breaks a read time limit that its words would not', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'read 30')
+    await runSliders($, 'words 100')
+    await completeTurn($, CODE_ANSWER)
+
+    expect(world.toasts).toHaveLength(1)
+    expect(world.toasts[0]).toContain('read time')
+    expect(world.toasts[0]).toContain('(limit 30 sec)')
+    expect(world.toasts[0]).not.toContain('words (limit')
   })
 
   test('stores nothing for a subagent turn', async ($, on) => {
@@ -450,6 +683,34 @@ describe('prompt.submit with a reading', () => {
   })
 })
 
+describe('prompt.submit with a read time reading', () => {
+  test('attaches the read time measurement of the last reply', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'read 10')
+    await completeTurn($, LONG_ANSWER)
+    await submitPrompt($, 'hi')
+    const context = world.submitted.at(-1)?.context?.[0]
+
+    expect(context).toContain('read time 10 sec or less')
+    expect(context).toContain('Last reply: read time')
+    expect(context).toContain('(limit 10 sec)')
+  })
+})
+
+describe('revise', () => {
+  test('lets the model trim code and tables when read time is on', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'read 30')
+    await completeTurn($, CODE_ANSWER)
+    const ui = await mountPane($, 'terminal')
+    await ui.press({ key: 'revise' })
+
+    expect(world.submitted.at(-1)?.text).toContain('read time')
+    expect(world.submitted.at(-1)?.text).toContain('you may shorten or drop them')
+    await ui.unmount()
+  })
+})
+
 describe('session.end', () => {
   const endSession = ($: Engine, reason: 'clear' | 'resume' | 'prompt_input_exit') =>
     $.session.end({ reason, sessionId: 'session-1', resume: { id: 'session-1' } })
@@ -512,6 +773,29 @@ describe('sliders command', () => {
     expect(world.statuses.at(-1)).toContain('≤100w')
   })
 
+  test('read 2m sets 120 seconds, turns it on and saves it', async ($, on) => {
+    const world = buildWorld(on)
+    const result = await runSliders($, 'read 2m')
+
+    expect(world.settings().dials.readTime).toEqual({ isOn: true, value: 120 })
+    expect(readStoredSettings(world)).toEqual(world.settings())
+    expect(result.text).toContain('Read time set to ≤ 2 min.')
+    expect(world.statuses.at(-1)).toContain('read ≤2m')
+  })
+
+  test('read with seconds, a bad unit and off', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'read 45 sec')
+    expect(world.settings().dials.readTime).toEqual({ isOn: true, value: 45 })
+
+    const rejected = await runSliders($, 'words 100 sec')
+    expect(rejected.text).toContain('I did not understand')
+    expect(world.settings().dials.totalWords.isOn).toBe(false)
+
+    await runSliders($, 'read off')
+    expect(world.settings().dials.readTime).toEqual({ isOn: false, value: 45 })
+  })
+
   test('formula and switch arguments are applied', async ($, on) => {
     const world = buildWorld(on)
     await runSliders($, 'formula smog')
@@ -548,7 +832,7 @@ describe('sliders command', () => {
     expect(result.text).toContain('Output style sliders opened (drawn on: desktop).')
     expect(result.text).toContain('If you do not see the pane, use commands instead')
     expect(result.text).toContain('Grade formula: Flesch-Kincaid')
-    expect(world.opened).toEqual([{ id: PANE_ID, focus: true, rows: 18, columns: 65 }])
+    expect(world.opened).toEqual([{ id: PANE_ID, focus: true, rows: 20, columns: 65 }])
   })
 })
 

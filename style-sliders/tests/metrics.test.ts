@@ -62,6 +62,20 @@ const ACADEMIC_PARAGRAPH =
 
 const SHORT_SENTENCE_REPEATS = 9
 
+const EIGHT_WORD_SENTENCE = 'The river carried water over the old stones. '
+const READ_TIME_SENTENCE_REPEATS = 30
+const CODE_WORDS_PER_MINUTE_FIXTURE = 119
+const CODE_LINE = 'a b c d e f g'
+const CODE_LINE_WORDS = 7
+const MIN_PLAIN_PARAGRAPH_SECONDS = 50
+const MAX_PLAIN_PARAGRAPH_SECONDS = 70
+
+const repeatLines = (line: string, count: number): string => Array.from({ length: count }, () => line).join('\n')
+
+const codeBlock = (words: number): string => `\`\`\`js\n${repeatLines(CODE_LINE, words / CODE_LINE_WORDS)}\n\`\`\``
+
+const tableWithOneCell = (words: number): string => `| ${repeatLines('word', words).replace(/\n/g, ' ')} |\n|---|`
+
 const measure = (markdown: string) => {
   const reading = measureText(markdown)
   if (!reading) throw new Error('expected a reading')
@@ -262,7 +276,10 @@ describe('measureText', () => {
       polysyllables: 6,
       longestParagraphWords: 19,
       longestSentenceWords: 10,
+      codeWords: 0,
+      tableWords: 0,
     })
+    expect(reading.readSeconds).toBe(7)
     expect(reading.readingEase).toBe(14.6)
     expect(reading.grades).toEqual({
       'flesch-kincaid': 13.6,
@@ -274,9 +291,14 @@ describe('measureText', () => {
     expect(reading.isSmallSample).toBe(true)
   })
 
-  test('code, tables and urls do not change the reading of the prose', () => {
-    const noisy = `${FIXTURE}\n\n\`\`\`js\nconst veryLongIdentifierName = 1\n\`\`\`\n\n| a | b |\n|---|---|\n| c | d |\n\nhttps://example.com/x`
-    expect(measure(noisy)).toEqual(measure(FIXTURE))
+  test('code, tables and urls do not change the prose numbers', () => {
+    const noisy = measure(
+      `${FIXTURE}\n\n\`\`\`js\nconst veryLongIdentifierName = 1\n\`\`\`\n\n| a | b |\n|---|---|\n| c | d |\n\nhttps://example.com/x`,
+    )
+    const plain = measure(FIXTURE)
+    expect(noisy.grades).toEqual(plain.grades)
+    expect(noisy.readingEase).toBe(plain.readingEase)
+    expect(noisy.stats).toEqual({ ...plain.stats, codeWords: 3, tableWords: 4 })
   })
 
   test('dense academic prose scores a higher grade and a lower ease than plain prose', () => {
@@ -309,14 +331,125 @@ describe('measureText', () => {
     expect(reading.isSmallSample).toBe(false)
   })
 
-  test('empty and prose-free replies return null', () => {
+  test('empty and unreadable replies return null', () => {
     expect(measureText('')).toBeNull()
     expect(measureText('   \n\n  ')).toBeNull()
-    expect(measureText('```js\nconst a = 1\n```')).toBeNull()
-    expect(measureText('```js\nunterminated code')).toBeNull()
-    expect(measureText('| a | b |\n|---|---|')).toBeNull()
+    expect(measureText('| --- | --- |\n|:---:|---|')).toBeNull()
     expect(measureText('https://example.com')).toBeNull()
     expect(measureText('---\n\n***')).toBeNull()
-    expect(measureText('`inline` `code`')).toBeNull()
+    expect(measureText('```\n+++ ---\n```')).toBeNull()
+    expect(measureText('` ` ``')).toBeNull()
+  })
+
+  test('code-only replies return a reading without prose numbers', () => {
+    const reading = measure('```js\nconst a = 1\n```')
+    expect(reading.stats).toEqual({
+      words: 0,
+      sentences: 0,
+      paragraphs: 0,
+      syllables: 0,
+      letters: 0,
+      polysyllables: 0,
+      longestParagraphWords: 0,
+      longestSentenceWords: 0,
+      codeWords: 3,
+      tableWords: 0,
+    })
+    expect(reading.grades).toEqual({
+      'flesch-kincaid': 0,
+      'gunning-fog': 0,
+      smog: 0,
+      'coleman-liau': 0,
+      'automated-readability': 0,
+    })
+    expect(reading.readingEase).toBe(100)
+    expect(reading.isSmallSample).toBe(true)
+    expect(reading.readSeconds).toBe(2)
+  })
+
+  test('unterminated code and inline-only code are readable', () => {
+    expect(measure('```js\nunterminated code').stats.codeWords).toBe(2)
+    expect(measure('`inline` `code`').stats.codeWords).toBe(2)
+  })
+})
+
+describe('read time', () => {
+  test('prose reads at 5.95 syllables per second', () => {
+    const reading = measure(EIGHT_WORD_SENTENCE.repeat(READ_TIME_SENTENCE_REPEATS))
+    expect(reading.stats.words).toBe(240)
+    expect(reading.stats.syllables).toBe(360)
+    expect(reading.readSeconds).toBe(61)
+  })
+
+  test('a 240-word plain paragraph reads in about a minute', () => {
+    const { readSeconds } = measure(EIGHT_WORD_SENTENCE.repeat(READ_TIME_SENTENCE_REPEATS))
+    expect(readSeconds).toBeGreaterThanOrEqual(MIN_PLAIN_PARAGRAPH_SECONDS)
+    expect(readSeconds).toBeLessThanOrEqual(MAX_PLAIN_PARAGRAPH_SECONDS)
+  })
+
+  test('longer words read slower than short ones at the same word count', () => {
+    const short = measure('The cat sat on the mat and ran.')
+    const long = measure('Notwithstanding considerable methodological heterogeneity, epidemiological investigations persist.')
+    expect(long.readSeconds).toBeGreaterThan(short.readSeconds)
+  })
+
+  test('fenced code reads at half the word rate', () => {
+    const reading = measure(codeBlock(CODE_WORDS_PER_MINUTE_FIXTURE))
+    expect(reading.stats.codeWords).toBe(CODE_WORDS_PER_MINUTE_FIXTURE)
+    expect(reading.readSeconds).toBe(60)
+  })
+
+  test('code seconds add to prose seconds', () => {
+    const reading = measure(`${FIXTURE}\n\n${codeBlock(CODE_WORDS_PER_MINUTE_FIXTURE)}`)
+    expect(reading.stats.words).toBe(19)
+    expect(reading.stats.codeWords).toBe(CODE_WORDS_PER_MINUTE_FIXTURE)
+    expect(reading.readSeconds).toBe(67)
+  })
+
+  test('identifiers, numbers and punctuation in code split into tokens', () => {
+    const reading = measure('```ts\nconst total_cost = items.map((x) => x.price * 2)\n```')
+    expect(reading.stats.codeWords).toBe(8)
+  })
+
+  test('inline code counts as code and not as prose', () => {
+    const reading = measure('Use `alpha_beta` and ``gamma ` 2`` now.')
+    expect(reading.stats.words).toBe(3)
+    expect(reading.stats.codeWords).toBe(3)
+    expect(reading.readSeconds).toBe(2)
+  })
+
+  test('tables count their cell words at the word rate', () => {
+    const reading = measure(tableWithOneCell(CODE_WORDS_PER_MINUTE_FIXTURE))
+    expect(reading.stats.tableWords).toBe(CODE_WORDS_PER_MINUTE_FIXTURE)
+    expect(reading.stats.words).toBe(0)
+    expect(reading.readSeconds).toBe(30)
+  })
+
+  test('separator rows add nothing and every cell is counted', () => {
+    const reading = measure('| name | kind |\n|:-----|:----:|\n| one two | three |\n| four | five six |')
+    expect(reading.stats.tableWords).toBe(8)
+    expect(reading.readSeconds).toBe(2)
+  })
+
+  test('inline code inside a table cell counts as code', () => {
+    const reading = measure('| name | call |\n|---|---|\n| run | `go fast` |')
+    expect(reading.stats.tableWords).toBe(3)
+    expect(reading.stats.codeWords).toBe(2)
+  })
+
+  test('urls, html tags and image urls add nothing', () => {
+    const plain = measure('Read this now.')
+    const noisy = measure(
+      'Read <b>this</b> now. ![chart](https://example.com/very/long/image/path.png) https://example.com/a/b/c?d=e',
+    )
+    expect(noisy.stats).toEqual(plain.stats)
+    expect(noisy.readSeconds).toBe(plain.readSeconds)
+  })
+
+  test('link text is read and its target is not', () => {
+    const plain = measure('Read the style guide now.')
+    const linked = measure('Read the [style guide](https://example.com/guide/with/many/parts) now.')
+    expect(linked.readSeconds).toBe(plain.readSeconds)
+    expect(linked.stats.codeWords).toBe(0)
   })
 })

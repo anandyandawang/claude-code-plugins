@@ -2,17 +2,18 @@
 
 > Turn the style of Claude's replies up or down, like a mixing desk.
 
-style-sliders gives you five sliders for how Claude writes in chat. Set a word limit, a grade level or a reading ease score. Claude gets the limits as rules. A hook then measures every reply and tells you if it fit.
+style-sliders gives you six sliders for how Claude writes in chat. Set a word limit, a read time, a grade level or a reading ease score. Claude gets the limits as rules. A hook then measures every reply and tells you if it fit.
 
 This is a function-hooks mod. It is built on the early-access plugin API.
 
 ## what it does
 
-There are five dials. Each one has a range, set in steps. Every dial is **off by default**.
+There are six dials. Each one has a range, set in steps. Every dial is **off by default**.
 
 | dial | limit | steps | default value |
 |------|-------|-------|---------------|
 | Total words | at most | 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 750, 1000, 1500, 2000 | 300 |
+| Read time | at most | 10 sec, 15 sec, 20 sec, 30 sec, 45 sec, 1 min, 1.5 min, 2 min, 3 min, 4 min, 5 min, 7 min, 10 min | 1 min |
 | Paragraph words | at most | 15, 20, 25, 30, 40, 50, 60, 80, 100, 150 | 60 |
 | Sentence words | at most | 8, 10, 12, 15, 18, 20, 25, 30, 40 | 20 |
 | Grade level | at most | grade 3 to 16, one grade at a time | 8 |
@@ -22,7 +23,7 @@ Turn on only the dials you want. A dial that is off does nothing.
 
 Grade level can use one of five formulas: Flesch-Kincaid (the default), Gunning Fog, SMOG, Coleman-Liau or ARI. You pick one.
 
-The `/sliders` command takes any number from the command line, not only the steps. The number is rounded and kept inside the range of the dial. The `+` and `-` buttons in the pane move one step.
+The `/sliders` command takes any number from the command line, not only the steps. For read time, the number is in seconds, or you can add a unit, like `45s` or `2m`. The number is rounded and kept inside the range of the dial. The `+` and `-` buttons in the pane move one step.
 
 ## the /sliders command
 
@@ -30,20 +31,23 @@ The `/sliders` command takes any number from the command line, not only the step
 /sliders - open the sliders pane
 /sliders show - show the settings and the last reading
 /sliders <dial> <number> - set a limit and turn it on
+/sliders read <time> - set the read time limit, like 45s, 90 or 2m
 /sliders <dial> on|off - turn one dial on or off
 /sliders formula <name> - pick the grade formula (fk, fog, smog, cli, ari)
 /sliders off - turn every dial off
 /sliders reset - go back to the defaults
 /sliders help - show this help
-Dials: words, paragraph, sentence, grade, ease
+Dials: words, read, paragraph, sentence, grade, ease
 ```
 
-Some more names work too. `total` and `length` mean words. `paragraphs` and `para` mean paragraph. `sentences` means sentence. `level` means grade. `readability` and `flesch` mean ease. `status` means show. The formula can also be `kincaid`, `gunning`, `coleman` or the full name, like `flesch-kincaid`.
+Some more names work too. `total` and `length` mean words. `readtime`, `read-time` and `time` mean read. `paragraphs` and `para` mean paragraph. `sentences` means sentence. `level` means grade. `readability` and `flesch` mean ease. `status` means show. The formula can also be `kincaid`, `gunning`, `coleman` or the full name, like `flesch-kincaid`.
 
 Examples:
 
 ```
 /sliders words 150
+/sliders read 45s
+/sliders read 2m
 /sliders grade 6
 /sliders formula fog
 /sliders ease off
@@ -63,15 +67,30 @@ These parts work together.
 
 The pane also has "All off" and "Reset" buttons, and a "Formula" button that cycles the five formulas.
 
+## read time
+
+The read time dial limits how long a reply takes to read.
+
+The base is 238 words a minute. This is the average for adults reading non-fiction silently (Brysbaert, 2019).
+
+- **Prose** is weighted by syllables. An average word has 1.5 syllables. Long words take longer, and short words take less time.
+- **Code** reads at half speed.
+- **Table text** counts at the normal rate.
+- **URLs** add nothing.
+
+Unlike the word limit, read time counts code and tables. So Claude may shorten or drop code and tables to fit. It must keep any code it leaves exact. The time is shown as seconds under a minute, and as minutes after that, like `45 sec` or `1.5 min`.
+
 ## what is counted
 
-Only prose is counted. This is what that means:
+For the word, paragraph, sentence, grade and ease limits, only prose is counted. This is what that means:
 
 - Headings, list items, bold text and link text count.
 - Code blocks, inline code, URLs and tables do not count.
 - Each list item counts as its own paragraph.
 
 So a long list of short items does not break the paragraph limit.
+
+Read time is different. It counts prose, code and tables. It still ignores URLs. See "read time" above.
 
 ## the grade formulas
 

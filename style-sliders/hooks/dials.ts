@@ -35,6 +35,15 @@ const SPECS_BY_ID: Record<DialId, DialSpec> = {
     defaultValue: 300,
     unit: 'words',
   },
+  readTime: {
+    id: 'readTime',
+    label: 'Read time',
+    shortLabel: 'read',
+    bound: 'max',
+    steps: [10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 420, 600],
+    defaultValue: 60,
+    unit: 'seconds',
+  },
   paragraphWords: {
     id: 'paragraphWords',
     label: 'Paragraph words',
@@ -75,6 +84,7 @@ const SPECS_BY_ID: Record<DialId, DialSpec> = {
 
 export const DIAL_SPECS: readonly DialSpec[] = [
   SPECS_BY_ID.totalWords,
+  SPECS_BY_ID.readTime,
   SPECS_BY_ID.paragraphWords,
   SPECS_BY_ID.sentenceWords,
   SPECS_BY_ID.gradeLevel,
@@ -114,6 +124,10 @@ const GRADE_FORMULA_HINTS: Record<GradeFormula, string> = {
 }
 
 const DEFAULT_FORMULA: GradeFormula = 'flesch-kincaid'
+const AVERAGE_WORDS_PER_MINUTE = 238
+const SECONDS_PER_MINUTE = 60
+const WORD_ESTIMATE_ROUNDING = 10
+const MINUTE_DECIMAL_SCALE = 10
 const FILLED_CELL = '█'
 const EMPTY_CELL = '░'
 const SMALL_SAMPLE_VERDICT =
@@ -217,6 +231,7 @@ export const hasActiveDials = (settings: StyleSettings): boolean => activeSpecs(
 
 export const measuredValue = (reading: StyleReading, id: DialId, formula: GradeFormula): number => {
   if (id === 'totalWords') return reading.stats.words
+  if (id === 'readTime') return reading.readSeconds
   if (id === 'paragraphWords') return reading.stats.longestParagraphWords
   if (id === 'sentenceWords') return reading.stats.longestSentenceWords
   if (id === 'gradeLevel') return reading.grades[formula]
@@ -250,27 +265,51 @@ export const sliderBar = (spec: DialSpec, value: number, width: number): string 
   return FILLED_CELL.repeat(filled) + EMPTY_CELL.repeat(cells - filled)
 }
 
-export const formatLimit = (spec: DialSpec, value: number): string =>
-  spec.id === 'gradeLevel'
-    ? `${boundSymbol(spec)} grade ${value}`
-    : `${boundSymbol(spec)} ${value} ${spec.unit}`
+const formatMinutes = (wholeSeconds: number): string =>
+  String(Math.round((wholeSeconds / SECONDS_PER_MINUTE) * MINUTE_DECIMAL_SCALE) / MINUTE_DECIMAL_SCALE)
+
+export const formatDuration = (seconds: number): string => {
+  const whole = Math.round(seconds)
+  return whole < SECONDS_PER_MINUTE ? `${whole} sec` : `${formatMinutes(whole)} min`
+}
+
+const formatCompactDuration = (seconds: number): string => {
+  const whole = Math.round(seconds)
+  return whole < SECONDS_PER_MINUTE ? `${whole}s` : `${formatMinutes(whole)}m`
+}
+
+export const formatLimit = (spec: DialSpec, value: number): string => {
+  if (spec.id === 'gradeLevel') return `${boundSymbol(spec)} grade ${value}`
+  if (spec.id === 'readTime') return `${boundSymbol(spec)} ${formatDuration(value)}`
+  return `${boundSymbol(spec)} ${value} ${spec.unit}`
+}
 
 const formatDecimal = (value: number): string => value.toFixed(1)
 
 const measuredPhrase = (id: DialId, measured: number): string => {
   if (id === 'totalWords') return `${Math.round(measured)} words`
+  if (id === 'readTime') return `read time ${formatDuration(measured)}`
   if (id === 'paragraphWords') return `longest paragraph ${Math.round(measured)} words`
   if (id === 'sentenceWords') return `longest sentence ${Math.round(measured)} words`
   if (id === 'gradeLevel') return `grade ${formatDecimal(measured)}`
   return `reading ease ${formatDecimal(measured)}`
 }
 
+const limitPhrase = (id: DialId, limit: number): string =>
+  id === 'readTime' ? formatDuration(limit) : String(limit)
+
+const breachMeasuredPhrase = (breach: Breach): string =>
+  breach.dial === 'readTime' && formatDuration(breach.measured) === formatDuration(breach.limit)
+    ? `read time ${Math.round(breach.measured)} sec`
+    : measuredPhrase(breach.dial, breach.measured)
+
 export const breachPhrase = (breach: Breach): string =>
-  `${measuredPhrase(breach.dial, breach.measured)} (limit ${breach.limit})`
+  `${breachMeasuredPhrase(breach)} (limit ${limitPhrase(breach.dial, breach.limit)})`
 
 const statusTag = (spec: DialSpec, settings: StyleSettings): string => {
   const value = settings.dials[spec.id].value
   if (spec.id === 'totalWords') return `${boundSymbol(spec)}${value}w`
+  if (spec.id === 'readTime') return `${spec.shortLabel} ${boundSymbol(spec)}${formatCompactDuration(value)}`
   if (spec.id === 'gradeLevel') {
     return `grade ${boundSymbol(spec)}${value} ${GRADE_FORMULA_TAGS[settings.gradeFormula]}`
   }
@@ -294,6 +333,13 @@ export const formatStatusLine = (
   return last === null ? limits : `${limits} · ${statusLastPart(settings, last)}`
 }
 
+const approximateWords = (seconds: number): number =>
+  Math.round((seconds * AVERAGE_WORDS_PER_MINUTE) / SECONDS_PER_MINUTE / WORD_ESTIMATE_ROUNDING) *
+  WORD_ESTIMATE_ROUNDING
+
+const readTimeBullet = (seconds: number): string =>
+  `Read time: a person should be able to read your reply in ${formatDuration(seconds)} or less. That is about ${approximateWords(seconds)} words of plain prose. Long words take longer, and code and tables count too: code reads at about half speed.`
+
 const limitBullet = (spec: DialSpec, settings: StyleSettings): string => {
   const value = settings.dials[spec.id].value
   const formulaLabel = GRADE_FORMULA_LABELS[settings.gradeFormula]
@@ -302,6 +348,7 @@ const limitBullet = (spec: DialSpec, settings: StyleSettings): string => {
     return `Paragraphs: at most ${value} words each. Each list item counts as its own paragraph.`
   }
   if (spec.id === 'sentenceWords') return `Sentences: at most ${value} words each.`
+  if (spec.id === 'readTime') return readTimeBullet(value)
   if (spec.id === 'gradeLevel') {
     return `Grade level: ${value} or lower on the ${formulaLabel} scale. ${GRADE_FORMULA_HINTS[settings.gradeFormula]}`
   }
@@ -313,8 +360,22 @@ const TARGETS_INTRO_LINES: readonly string[] = [
   'The person set these limits with sliders. They apply to every reply you write to the person in chat. A hook measures each reply after you send it.',
 ]
 
+const COUNTING_OPENING =
+  'Everything you write to the person counts, including headings, list items, bold labels and link text.'
+const COUNTING_CLOSING = 'Keep code, URLs and tables complete and exact.'
+const COUNTING_CLOSING_WITH_READ_TIME =
+  'Keep URLs exact. Keep any code you include exact, but you may shorten or drop code and tables to fit the read time.'
+const UNCOUNTED_RULE = 'Code blocks, inline code, URLs and tables are not counted.'
+const UNCOUNTED_WITH_READ_TIME_RULE =
+  'Code blocks, inline code, URLs and tables are not counted toward the word, paragraph, sentence, grade and ease limits. Code and tables do count toward read time, but URLs never do.'
+
+const countingRule = (settings: StyleSettings): string => {
+  const uncounted = settings.dials.readTime.isOn ? UNCOUNTED_WITH_READ_TIME_RULE : UNCOUNTED_RULE
+  const closing = settings.dials.readTime.isOn ? COUNTING_CLOSING_WITH_READ_TIME : COUNTING_CLOSING
+  return `${COUNTING_OPENING} ${uncounted} ${closing}`
+}
+
 const TARGETS_RULES: readonly string[] = [
-  'Everything you write to the person counts, including headings, list items, bold labels and link text. Code blocks, inline code, URLs and tables are not counted. Keep code, URLs and tables complete and exact.',
   'You cannot count words exactly, so aim about 15 percent below each maximum. Do not mention the limits or your word count unless the person asks.',
   'Never drop a fact the person needs to meet a limit. If the answer cannot fit, give the most important part and offer to continue.',
   'The limits cover replies to the person only. They do not cover tool inputs, files, code or commit messages. They do not cover reports a subagent writes for another agent. If you are a subagent, ignore these limits.',
@@ -324,7 +385,7 @@ export const composeTargetsSection = (settings: StyleSettings): string | null =>
   const active = activeSpecs(settings)
   if (active.length === 0) return null
   const bullets = active.map(spec => `- ${limitBullet(spec, settings)}`)
-  return [...TARGETS_INTRO_LINES, '', ...bullets, '', ...TARGETS_RULES].join('\n')
+  return [...TARGETS_INTRO_LINES, '', ...bullets, '', countingRule(settings), ...TARGETS_RULES].join('\n')
 }
 
 const compactLimit = (spec: DialSpec, settings: StyleSettings): string => {
@@ -333,6 +394,7 @@ const compactLimit = (spec: DialSpec, settings: StyleSettings): string => {
   if (spec.id === 'totalWords') return `total at most ${value} words`
   if (spec.id === 'paragraphWords') return `paragraphs at most ${value} words`
   if (spec.id === 'sentenceWords') return `sentences at most ${value} words`
+  if (spec.id === 'readTime') return `read time ${formatDuration(value)} or less`
   if (spec.id === 'gradeLevel') return `grade ${value} or lower (${formulaLabel})`
   return `reading ease ${value} or higher`
 }
@@ -380,6 +442,13 @@ export const composeTurnContext = (
   return last === null ? limits : `${limits}\n${lastReplyLine(settings, last)}`
 }
 
+const REVISION_KEEP_RULE = 'Leave code, inline code, URLs and tables unchanged.'
+const REVISION_KEEP_RULE_WITH_READ_TIME =
+  'Leave URLs unchanged. Code and tables count toward read time, so you may shorten or drop them, but keep any code you leave exact.'
+
+const revisionKeepRule = (settings: StyleSettings): string =>
+  settings.dials.readTime.isOn ? REVISION_KEEP_RULE_WITH_READ_TIME : REVISION_KEEP_RULE
+
 export const composeRevisionPrompt = (settings: StyleSettings, reading: StyleReading): string => {
   const breaches = findBreaches(settings, reading)
   const breachLines =
@@ -395,7 +464,7 @@ export const composeRevisionPrompt = (settings: StyleSettings, reading: StyleRea
     'All the limits:',
     ...limitLines,
     '',
-    'Keep the facts I need. If they cannot all fit, keep the most important part and offer to continue. Leave code, inline code, URLs and tables unchanged. Send only the rewritten reply.',
+    `Keep the facts I need. If they cannot all fit, keep the most important part and offer to continue. ${revisionKeepRule(settings)} Send only the rewritten reply.`,
   ].join('\n')
 }
 
@@ -413,6 +482,7 @@ const describeLast = (settings: StyleSettings, last: StyleReading | null): strin
   return [
     'Last reply:',
     `  Words: ${last.stats.words}`,
+    `  Read time: ${formatDuration(last.readSeconds)}`,
     `  Longest paragraph: ${last.stats.longestParagraphWords} words`,
     `  Longest sentence: ${last.stats.longestSentenceWords} words`,
     `  Grade level (${formulaLabel}): ${formatDecimal(last.grades[settings.gradeFormula])}`,
@@ -433,6 +503,10 @@ const DIAL_ALIASES: Readonly<Record<string, DialId>> = {
   words: 'totalWords',
   total: 'totalWords',
   length: 'totalWords',
+  read: 'readTime',
+  readtime: 'readTime',
+  'read-time': 'readTime',
+  time: 'readTime',
   paragraph: 'paragraphWords',
   paragraphs: 'paragraphWords',
   para: 'paragraphWords',
@@ -464,12 +538,13 @@ export const SLIDERS_USAGE: string = [
   '/sliders - open the sliders pane',
   '/sliders show - show the settings and the last reading',
   '/sliders <dial> <number> - set a limit and turn it on',
+  '/sliders read <time> - set the read time limit, like 45s, 90 or 2m',
   '/sliders <dial> on|off - turn one dial on or off',
   '/sliders formula <name> - pick the grade formula (fk, fog, smog, cli, ari)',
   '/sliders off - turn every dial off',
   '/sliders reset - go back to the defaults',
   '/sliders help - show this help',
-  'Dials: words, paragraph, sentence, grade, ease',
+  'Dials: words, read, paragraph, sentence, grade, ease',
 ].join('\n')
 
 const lookup = <Value>(table: Readonly<Record<string, Value>>, key: string): Value | undefined =>
@@ -484,16 +559,41 @@ const SINGLE_WORD_COMMANDS: Readonly<Record<string, SlidersCommand>> = {
 }
 
 const NUMBER_PATTERN = /^\d+(\.\d+)?$/
+const TIME_PATTERN = /^(\d+(?:\.\d+)?)\s*([a-z]*)$/
+
+const SECONDS_PER_UNIT: Readonly<Record<string, number>> = {
+  s: 1,
+  sec: 1,
+  secs: 1,
+  second: 1,
+  seconds: 1,
+  m: SECONDS_PER_MINUTE,
+  min: SECONDS_PER_MINUTE,
+  mins: SECONDS_PER_MINUTE,
+  minute: SECONDS_PER_MINUTE,
+  minutes: SECONDS_PER_MINUTE,
+}
 
 const errorCommand = (args: string): SlidersCommand => ({
   kind: 'error',
   message: `I did not understand "${args.trim()}".\n${SLIDERS_USAGE}`,
 })
 
+const parseSeconds = (argument: string): number | undefined => {
+  const [, amount, unit = ''] = TIME_PATTERN.exec(argument) ?? []
+  if (amount === undefined) return undefined
+  const secondsPerUnit = unit === '' ? 1 : lookup(SECONDS_PER_UNIT, unit)
+  return secondsPerUnit === undefined ? undefined : Math.round(Number(amount) * secondsPerUnit)
+}
+
+const parseNumber = (argument: string): number | undefined =>
+  NUMBER_PATTERN.test(argument) ? Number(argument) : undefined
+
 const parseDialCommand = (dial: DialId, argument: string): SlidersCommand | undefined => {
   if (argument === 'on') return { kind: 'switch', dial, isOn: true }
   if (argument === 'off') return { kind: 'switch', dial, isOn: false }
-  return NUMBER_PATTERN.test(argument) ? { kind: 'set', dial, value: Number(argument) } : undefined
+  const value = dial === 'readTime' ? parseSeconds(argument) : parseNumber(argument)
+  return value === undefined ? undefined : { kind: 'set', dial, value }
 }
 
 const parseFormulaCommand = (name: string): SlidersCommand | undefined => {
@@ -501,22 +601,18 @@ const parseFormulaCommand = (name: string): SlidersCommand | undefined => {
   return formula === undefined ? undefined : { kind: 'formula', formula }
 }
 
-const parseTwoWords = (first: string, second: string): SlidersCommand | undefined => {
-  if (first === 'formula') return parseFormulaCommand(second)
+const parseWithArgument = (first: string, argument: string): SlidersCommand | undefined => {
+  if (first === 'formula') return parseFormulaCommand(argument)
   const dial = lookup(DIAL_ALIASES, first)
-  return dial === undefined ? undefined : parseDialCommand(dial, second)
+  return dial === undefined ? undefined : parseDialCommand(dial, argument)
 }
 
 export const parseSlidersCommand = (args: string): SlidersCommand => {
   const words = args.toLowerCase().split(/\s+/).filter(word => word !== '')
-  const [first, second] = words
+  const [first, ...rest] = words
   if (first === undefined) return { kind: 'open' }
   const parsed =
-    words.length === 1
-      ? lookup(SINGLE_WORD_COMMANDS, first)
-      : words.length === 2 && second !== undefined
-        ? parseTwoWords(first, second)
-        : undefined
+    rest.length === 0 ? lookup(SINGLE_WORD_COMMANDS, first) : parseWithArgument(first, rest.join(' '))
   return parsed ?? errorCommand(args)
 }
 
