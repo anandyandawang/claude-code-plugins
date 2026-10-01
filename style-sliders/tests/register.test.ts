@@ -21,14 +21,14 @@ const PANE_PROPS = {
 const SHORT_SENTENCE = 'This is a plain sentence about nothing much.'
 const LONG_ANSWER = Array.from({ length: 6 }, () => SHORT_SENTENCE).join(' ')
 
-type Submitted = { text: string; context: readonly string[] | undefined }
+type Submitted = { text: string; context: readonly string[] | undefined; asUser: boolean }
 
 type World = {
   statuses: (string | undefined)[]
   toasts: string[]
   submitted: Submitted[]
   closed: string[]
-  opened: { id: string; focus?: true; rows?: number }[]
+  opened: { id: string; focus?: true; rows?: number; columns?: number }[]
   stored: Map<string, unknown>
   settings: () => StyleSettings
   last: () => StyleReading | null
@@ -67,7 +67,7 @@ const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
     return { value: undefined }
   })
   on('ui.open', (_, e) => {
-    world.opened.push({ id: e.id, focus: e.focus, rows: e.rows })
+    world.opened.push({ id: e.id, focus: e.focus, rows: e.rows, columns: e.columns })
     return { value: { isPlaced: true } }
   })
   on('ui.close', (_, e) => {
@@ -76,7 +76,7 @@ const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
   })
   on('command.register', (_, e) => ({ value: { command: e.name } }))
   on('prompt.submit', (_, e) => {
-    world.submitted.push({ text: e.text, context: e.context })
+    world.submitted.push({ text: e.text, context: e.context, asUser: e.origin.kind === 'plugin' && e.origin.asUser === true })
     return { text: e.text, context: e.context }
   })
   on('prompt.compose', () => ({
@@ -84,6 +84,7 @@ const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
   }))
   on('turn.complete', () => ({ text: '' }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
+  on('session.end', (_, e) => ({ sessionId: e.sessionId }))
   return world
 }
 
@@ -182,7 +183,9 @@ describe('pane', () => {
       await ui.press({ key: 'formula' })
       expect(world.settings().gradeFormula).toBe('gunning-fog')
       expect(readStoredSettings(world)).toEqual(world.settings())
-      expect(await ui.find({ type: 'Button', text: 'formula: Gunning Fog' })).toBeDefined()
+      expect(await ui.find({ type: 'Button', text: 'Formula: Gunning Fog' })).toBeDefined()
+      expect(await ui.findAll({ type: 'Button', key: 'formula' })).toHaveLength(1)
+      expect(await ui.find({ type: 'Text', text: /formula:/i })).toBeUndefined()
       await ui.unmount()
     })
 
@@ -212,13 +215,34 @@ describe('pane', () => {
       const ui = await mountPane($, surface)
 
       expect(await ui.find({ type: 'Text', text: /Words\s+48/ })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: '✗' })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: '✓' })).toBeDefined()
+      expect(await ui.find({ type: 'Box', text: /^Words\s+48 ✗$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Box', text: /^Longest sentence\s+8 ✓$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Box', text: /^Words\s+48 ✓$/ })).toBeUndefined()
+      expect(await ui.find({ type: 'Box', text: /^Longest sentence\s+8 ✗$/ })).toBeUndefined()
+      expect(await ui.find({ type: 'Box', text: /^Longest paragraph\s+48$/ })).toBeDefined()
       expect(await ui.find({ type: 'Button', key: 'revise' })).toBeDefined()
 
       await ui.press({ key: 'revise' })
       expect(world.submitted.at(-1)?.text).toContain('rewrite your previous reply')
+      expect(world.submitted.at(-1)?.asUser).toBe(true)
       expect(world.closed).toEqual([PANE_ID])
+      await ui.unmount()
+    })
+
+    test(`formula button changes the grade row of the last reply on ${surface}`, async ($, on) => {
+      buildWorld(on)
+      await runSliders($, 'grade 6')
+      await completeTurn($, LONG_ANSWER)
+      const ui = await mountPane($, surface)
+      const before = await ui.find({ type: 'Box', text: /^Grade \(Flesch-Kincaid\)\s*\d/ })
+      expect(before).toBeDefined()
+
+      await ui.press({ key: 'formula' })
+      const after = await ui.find({ type: 'Box', text: /^Grade \(Gunning Fog\)\s*\d/ })
+      expect(after).toBeDefined()
+      expect(after?.text.replace(/^Grade \(Gunning Fog\)\s*/, '')).not.toBe(
+        before?.text.replace(/^Grade \(Flesch-Kincaid\)\s*/, ''),
+      )
       await ui.unmount()
     })
 
@@ -233,7 +257,52 @@ describe('pane', () => {
   }
 })
 
+const mountPaneAt = ($: Engine, bodyColumns: number) =>
+  $.ui.mount({
+    plugin: PLUGIN,
+    surface: 'terminal',
+    component: 'Pane',
+    props: { ...PANE_PROPS, bodyColumns },
+    requestId: PANE_ID,
+  })
+
+const FIXED_ROW_WIDTH = 51
+
 describe('pane width', () => {
+  for (const bodyColumns of [57, 58, 70, 200]) {
+    test(`a dial row fits ${bodyColumns} columns`, async ($, on) => {
+      buildWorld(on)
+      const ui = await mountPaneAt($, bodyColumns)
+      const bars = await ui.findAll({ type: 'Text', text: /^[█░]+$/ })
+
+      expect(bars).toHaveLength(DIAL_SPECS.length)
+      for (const bar of bars) expect(FIXED_ROW_WIDTH + bar.text.length).toBeLessThanOrEqual(bodyColumns)
+      await ui.unmount()
+    })
+  }
+
+  test('every control is still drawn in 40 columns', async ($, on) => {
+    buildWorld(on)
+    const ui = await mountPaneAt($, 40)
+
+    for (const spec of DIAL_SPECS) {
+      expect(await ui.find({ type: 'Button', key: `${spec.id}:down` })).toBeDefined()
+      expect(await ui.find({ type: 'Button', key: `${spec.id}:up` })).toBeDefined()
+      expect(await ui.find({ type: 'Button', key: `${spec.id}:toggle` })).toBeDefined()
+    }
+    await ui.unmount()
+  })
+
+  test('dial rows are allowed to wrap on a narrow pane', async ($, on) => {
+    buildWorld(on)
+    const ui = await mountPaneAt($, 40)
+    const rows = (await ui.findAll({ type: 'Box' })).filter(box => box.props.gap === 1 && /^Total words/.test(box.text))
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0]?.props.flexWrap).toBe('wrap')
+    await ui.unmount()
+  })
+
   for (const [bodyColumns, barWidth] of [[20, 6], [70, 19], [200, 24]] as const) {
     test(`draws bars ${barWidth} cells wide in ${bodyColumns} columns`, async ($, on) => {
       buildWorld(on)
@@ -269,7 +338,7 @@ describe('prompt.compose', () => {
 
     expect(composed.sections.map(section => section.id)).toEqual(['base', 'style-sliders:targets'])
     expect(added?.scope).toBe('session')
-    expect(added?.text).toContain('100')
+    expect(added?.text).toContain('at most 100 words')
   })
 
   test('drops the section again when every dial goes off', async ($, on) => {
@@ -298,9 +367,15 @@ describe('turn.complete', () => {
     expect(world.last()).toBeNull()
   })
 
-  test('stores nothing for an empty answer or an aborted turn', async ($, on) => {
+  test('stores nothing for an empty answer', async ($, on) => {
     const world = buildWorld(on)
     await completeTurn($, '')
+
+    expect(world.last()).toBeNull()
+  })
+
+  test('stores nothing for an aborted turn', async ($, on) => {
+    const world = buildWorld(on)
     await $.turn.complete({
       answer: LONG_ANSWER,
       durationMs: 10,
@@ -360,6 +435,71 @@ describe('prompt.submit', () => {
   })
 })
 
+describe('prompt.submit with a reading', () => {
+  test('attaches the last reply measurement after a measured turn', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'words 25')
+    await completeTurn($, LONG_ANSWER)
+    await submitPrompt($, 'hi')
+    const context = world.submitted.at(-1)?.context
+
+    expect(context).toHaveLength(1)
+    expect(context?.[0]).toContain('Last reply: 48 words')
+    expect(context?.[0]).toContain('Over:')
+  })
+})
+
+describe('session.end', () => {
+  const endSession = ($: Engine, reason: 'clear' | 'resume' | 'prompt_input_exit') =>
+    $.session.end({ reason, sessionId: 'session-1', resume: { id: 'session-1' } })
+
+  test('clear drops the stale reading from the status line and the next prompt', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'words 25')
+    await completeTurn($, LONG_ANSWER)
+    expect(world.last()?.stats.words).toBe(48)
+    expect(world.statuses.at(-1)).toContain('last 48w')
+
+    await endSession($, 'clear')
+    await submitPrompt($, 'fresh start')
+    const context = world.submitted.at(-1)?.context
+
+    expect(world.last()).toBeNull()
+    expect(world.statuses.at(-1)).not.toContain('last')
+    expect(world.statuses.at(-1)).toContain('≤25w')
+    expect(context).toHaveLength(1)
+    expect(context?.[0]).toContain('Style limits for this reply')
+    expect(context?.[0]).not.toContain('Last reply:')
+  })
+
+  test('resume drops the stale reading as well', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'words 25')
+    await completeTurn($, LONG_ANSWER)
+    await endSession($, 'resume')
+
+    expect(world.last()).toBeNull()
+  })
+
+  test('leaving the app keeps the reading', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'words 25')
+    await completeTurn($, LONG_ANSWER)
+    await endSession($, 'prompt_input_exit')
+
+    expect(world.last()?.stats.words).toBe(48)
+    expect(world.statuses.at(-1)).toContain('last 48w')
+  })
+
+  test('clear leaves the settings alone', async ($, on) => {
+    const world = buildWorld(on)
+    await runSliders($, 'words 25')
+    await endSession($, 'clear')
+
+    expect(world.settings().dials.totalWords).toEqual({ isOn: true, value: 25 })
+  })
+})
+
 describe('sliders command', () => {
   test('words 100 sets the limit, turns it on and saves it', async ($, on) => {
     const world = buildWorld(on)
@@ -405,7 +545,7 @@ describe('sliders command', () => {
     const result = await runSliders($, '')
 
     expect(result.text).toBe('Output style sliders opened.')
-    expect(world.opened).toEqual([{ id: PANE_ID, focus: true, rows: 18 }])
+    expect(world.opened).toEqual([{ id: PANE_ID, focus: true, rows: 18, columns: 65 }])
   })
 })
 

@@ -39,9 +39,14 @@ const PANE_ROWS = 18
 const LABEL_WIDTH = 16
 const LAST_LABEL_WIDTH = 20
 const LIMIT_WIDTH = 13
-const FIXED_ROW_WIDTH = 51
+const STEP_BUTTON_WIDTH = 5
+const TOGGLE_BUTTON_WIDTH = 7
+const ROW_GAP_COUNT = 5
+const FIXED_ROW_WIDTH =
+  LABEL_WIDTH + LIMIT_WIDTH + 2 * STEP_BUTTON_WIDTH + TOGGLE_BUTTON_WIDTH + ROW_GAP_COUNT
 const MIN_BAR_WIDTH = 6
 const MAX_BAR_WIDTH = 24
+const PANE_COLUMNS = FIXED_ROW_WIDTH + MIN_BAR_WIDTH + 8
 
 const PASS_MARK = ' ✓'
 const FAIL_MARK = ' ✗'
@@ -108,6 +113,7 @@ const openPane = async ($: Engine): Promise<string> => {
     focus: true,
     closeOnEscape: true,
     rows: PANE_ROWS,
+    columns: PANE_COLUMNS,
   })
   return opened.isPlaced
     ? 'Output style sliders opened.'
@@ -131,7 +137,7 @@ const reviseLastReply = async ($: Engine): Promise<void> => {
   const reading = await read($, last)
   if (reading === null) return
   const current = await read($, settings)
-  await $.prompt.submit({ text: composeRevisionPrompt(current, reading) })
+  await $.prompt.submit({ text: composeRevisionPrompt(current, reading), asUser: true })
   await $.ui.close({ id: PANE_ID })
 }
 
@@ -182,6 +188,15 @@ export const register: Register = on => {
     return next(e)
   }).catch((_, e, next) => next(e))
 
+  on('session.end', async ($, e, next) => {
+    if (e.reason === 'clear' || e.reason === 'resume') {
+      await update($, last, () => null)
+      await refreshStatus($)
+    }
+
+    return next(e)
+  }).catch((_, e, next) => next(e))
+
   on('command.run', { command: 'sliders' }, ($, e) => runSlidersCommand($, e.args))
 
   on('prompt.compose', async ($, e, next) => {
@@ -224,7 +239,7 @@ export const register: Register = on => {
 
           return (
             <Box flexDirection="column">
-              <Box gap={1}>
+              <Box gap={1} flexWrap="wrap">
                 <Text dimColor={!dial.isOn}>{spec.label.padEnd(LABEL_WIDTH)}</Text>
                 <Button
                   key={`${spec.id}:down`}
@@ -247,18 +262,18 @@ export const register: Register = on => {
                 />
               </Box>
               {spec.id === 'gradeLevel' && (
-                <Text dimColor>
-                  {' '.repeat(LABEL_WIDTH + 1)}formula: {GRADE_FORMULA_LABELS[current.gradeFormula]}
-                </Text>
+                <Box>
+                  <Text>{' '.repeat(LABEL_WIDTH + 1)}</Text>
+                  <Button
+                    key="formula"
+                    label={`Formula: ${GRADE_FORMULA_LABELS[current.gradeFormula]}`}
+                    onPress={() => changeSettings($, cycleGradeFormula)}
+                  />
+                </Box>
               )}
             </Box>
           )
         })}
-        <Button
-          key="formula"
-          label={`formula: ${GRADE_FORMULA_LABELS[current.gradeFormula]}`}
-          onPress={() => changeSettings($, cycleGradeFormula)}
-        />
         <Box flexDirection="column" marginTop={1}>
           <Text bold>Last reply</Text>
           {reading === null && <Text dimColor>No reply measured yet.</Text>}

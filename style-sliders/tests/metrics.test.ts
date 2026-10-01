@@ -32,6 +32,21 @@ const SYLLABLE_TABLE: readonly (readonly [string, number])[] = [
   ['dialogue', 3],
   ['usual', 3],
   ['Readability', 5],
+  ["didn't", 2],
+  ["couldn't", 2],
+  ["isn't", 2],
+  ["aren't", 1],
+  ["weren't", 1],
+  ["don't", 1],
+  ['statement', 2],
+  ['movement', 2],
+  ['completely', 3],
+  ['useful', 2],
+  ['hopeless', 2],
+  ['carefully', 3],
+  ['something', 2],
+  ['everything', 3],
+  ['therefore', 2],
 ]
 
 const FIXTURE =
@@ -74,6 +89,12 @@ describe('countSyllables', () => {
     expect(countSyllables("don't")).toBe(1)
     expect(countSyllables('U.S.')).toBe(1)
     expect(countSyllables('v1.2.3')).toBe(1)
+  })
+
+  test('silent e before a suffix is not counted', () => {
+    expect(countSyllables('agreement')).toBe(3)
+    expect(countSyllables('freely')).toBe(2)
+    expect(countSyllables('achievement')).toBe(3)
   })
 })
 
@@ -187,6 +208,19 @@ describe('sentences', () => {
     expect(splitSentences('Dr. Smith met Mr. Jones, e.g. in St. Louis, i.e. at home.').length).toBe(1)
     expect(splitSentences('Inc. and Ltd. and Jr. and Sr. and vs. and etc. and cf. and approx. here.').length).toBe(1)
     expect(splitSentences('Mrs. Lee and Ms. Park work in the U.S. now.').length).toBe(1)
+  })
+
+  test('month and reference abbreviations do not split', () => {
+    expect(splitSentences('See Fig. 3 for details.').length).toBe(1)
+    expect(splitSentences('Version 2.1.287 was released on Jan. 5th.').length).toBe(1)
+    expect(splitSentences('See Smith et al. for more.').length).toBe(1)
+  })
+
+  test('p.m. and etc. split only before a capital letter', () => {
+    expect(splitSentences('Python, Ruby, etc. It is fast.').length).toBe(2)
+    expect(splitSentences('It is at 5 p.m. now.').length).toBe(1)
+    expect(splitSentences('We meet at 5 p.m. Please come.').length).toBe(2)
+    expect(splitSentences('We meet at 5 p.m. Please come.')[0]).toBe('We meet at 5 p.m.')
   })
 
   test('No. only counts as an abbreviation before a number', () => {

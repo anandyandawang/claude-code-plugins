@@ -105,10 +105,21 @@ const GRADE_FORMULA_TAGS: Record<GradeFormula, string> = {
   'automated-readability': 'ARI',
 }
 
+const GRADE_FORMULA_HINTS: Record<GradeFormula, string> = {
+  'flesch-kincaid': 'Use short sentences and words of one or two syllables.',
+  'gunning-fog': 'Avoid words of three or more syllables.',
+  smog: 'Avoid words of three or more syllables.',
+  'coleman-liau': 'Use short words.',
+  'automated-readability': 'Use short words.',
+}
+
 const DEFAULT_FORMULA: GradeFormula = 'flesch-kincaid'
 const FILLED_CELL = '█'
 const EMPTY_CELL = '░'
-const SMALL_SAMPLE_NOTE = '(small sample)'
+const SMALL_SAMPLE_VERDICT =
+  'Your last reply was short, so its grade and reading ease are rough. Do not adjust for them.'
+const CLOSING_VERDICT = 'Aim to fit every limit this time.'
+const SCORE_HINT = 'Use shorter sentences and plainer words.'
 
 export const dialSpec = (id: DialId): DialSpec => SPECS_BY_ID[id]
 
@@ -292,9 +303,9 @@ const limitBullet = (spec: DialSpec, settings: StyleSettings): string => {
   }
   if (spec.id === 'sentenceWords') return `Sentences: at most ${value} words each.`
   if (spec.id === 'gradeLevel') {
-    return `Grade level: ${value} or lower on the ${formulaLabel} scale. Use short sentences and short, common words.`
+    return `Grade level: ${value} or lower on the ${formulaLabel} scale. ${GRADE_FORMULA_HINTS[settings.gradeFormula]}`
   }
-  return `Reading ease: a Flesch Reading Ease score of ${value} or higher (higher is easier).`
+  return `Reading ease: a Flesch Reading Ease score of ${value} or higher (higher is easier). Short sentences and short words raise it.`
 }
 
 const TARGETS_INTRO_LINES: readonly string[] = [
@@ -303,7 +314,8 @@ const TARGETS_INTRO_LINES: readonly string[] = [
 ]
 
 const TARGETS_RULES: readonly string[] = [
-  'Only prose is counted. Code blocks, inline code, URLs and tables are not counted. Keep them complete and exact.',
+  'Everything you write to the person counts, including headings, list items, bold labels and link text. Code blocks, inline code, URLs and tables are not counted. Keep code, URLs and tables complete and exact.',
+  'You cannot count words exactly, so aim about 15 percent below each maximum. Do not mention the limits or your word count unless the person asks.',
   'Never drop a fact the person needs to meet a limit. If the answer cannot fit, give the most important part and offer to continue.',
   'The limits cover replies to the person only. They do not cover tool inputs, files, code or commit messages. They do not cover reports a subagent writes for another agent. If you are a subagent, ignore these limits.',
 ]
@@ -328,13 +340,10 @@ const compactLimit = (spec: DialSpec, settings: StyleSettings): string => {
 const hasScoreDial = (settings: StyleSettings): boolean =>
   settings.dials.gradeLevel.isOn || settings.dials.readingEase.isOn
 
-const lastReplyLine = (settings: StyleSettings, last: StyleReading): string => {
-  const values = activeSpecs(settings)
-    .map(spec => measuredPhrase(spec.id, measuredValue(last, spec.id, settings.gradeFormula)))
-    .join(', ')
-  const sampleNote = last.isSmallSample && hasScoreDial(settings) ? ` ${SMALL_SAMPLE_NOTE}` : ''
-  return `Last reply: ${values}${sampleNote}. ${verdictText(findBreaches(settings, last))}`
-}
+const isScoreDial = (id: DialId): boolean => id === 'gradeLevel' || id === 'readingEase'
+
+const hasScoreBreach = (breaches: readonly Breach[]): boolean =>
+  breaches.some(breach => isScoreDial(breach.dial))
 
 const verdictText = (breaches: Breach[]): string => {
   if (breaches.length === 0) return 'It fit every limit.'
@@ -343,8 +352,22 @@ const verdictText = (breaches: Breach[]): string => {
   const parts = [
     ...(over.length > 0 ? [`Over: ${over.map(breachPhrase).join('; ')}.`] : []),
     ...(under.length > 0 ? [`Under: ${under.map(breachPhrase).join('; ')}.`] : []),
+    ...(hasScoreBreach(breaches) ? [SCORE_HINT] : []),
   ]
-  return `${parts.join(' ')} Write this reply tighter.`
+  return `${parts.join(' ')} ${CLOSING_VERDICT}`
+}
+
+const lastReplyLine = (settings: StyleSettings, last: StyleReading): string => {
+  const isRough = last.isSmallSample && hasScoreDial(settings)
+  const isCounted = (id: DialId): boolean => !(isRough && isScoreDial(id))
+  const values = activeSpecs(settings)
+    .filter(spec => isCounted(spec.id))
+    .map(spec => measuredPhrase(spec.id, measuredValue(last, spec.id, settings.gradeFormula)))
+    .join(', ')
+  if (values === '') return SMALL_SAMPLE_VERDICT
+  const breaches = findBreaches(settings, last).filter(breach => isCounted(breach.dial))
+  const exactPart = `Last reply: ${values}. ${verdictText(breaches)}`
+  return isRough ? `${exactPart} ${SMALL_SAMPLE_VERDICT}` : exactPart
 }
 
 export const composeTurnContext = (
@@ -372,7 +395,7 @@ export const composeRevisionPrompt = (settings: StyleSettings, reading: StyleRea
     'All the limits:',
     ...limitLines,
     '',
-    'Keep every fact. Leave code, inline code, URLs and tables unchanged. Send only the rewritten reply.',
+    'Keep the facts I need. If they cannot all fit, keep the most important part and offer to continue. Leave code, inline code, URLs and tables unchanged. Send only the rewritten reply.',
   ].join('\n')
 }
 

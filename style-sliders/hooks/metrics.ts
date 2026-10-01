@@ -34,11 +34,11 @@ const TERMINATOR_START = /^[.!?…]/
 const CLOSING_QUOTES = /["'”’)\]»]/
 const WHITESPACE = /\s/
 const NUMBER_REFERENCE = /^\s*[#\d]/
+const STARTS_NEW_SENTENCE = /^\s+[\p{Lu}]/u
 
 const ABBREVIATIONS: ReadonlySet<string> = new Set([
   'e.g',
   'i.e',
-  'etc',
   'vs',
   'mr',
   'mrs',
@@ -53,7 +53,26 @@ const ABBREVIATIONS: ReadonlySet<string> = new Set([
   'sr',
   'u.s',
   'u.s.a',
+  'fig',
+  'al',
+  'prof',
+  'gen',
+  'vol',
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'sept',
+  'oct',
+  'nov',
+  'dec',
 ])
+
+const CONTEXTUAL_ABBREVIATIONS: ReadonlySet<string> = new Set(['a.m', 'p.m', 'etc'])
 
 const NUMBERED_ABBREVIATION = 'no'
 
@@ -83,6 +102,26 @@ const IRREGULAR_SYLLABLES: ReadonlyMap<string, number> = new Map([
   ['naked', 2],
   ['sacred', 2],
   ['wicked', 2],
+  ['didnt', 2],
+  ['isnt', 2],
+  ['wasnt', 2],
+  ['doesnt', 2],
+  ['couldnt', 2],
+  ['wouldnt', 2],
+  ['shouldnt', 2],
+  ['hasnt', 2],
+  ['hadnt', 2],
+  ['mustnt', 2],
+  ['neednt', 2],
+  ['arent', 1],
+  ['werent', 1],
+  ['havent', 2],
+  ['mightnt', 2],
+  ['something', 2],
+  ['sometimes', 2],
+  ['everything', 3],
+  ['therefore', 2],
+  ['somewhere', 2],
 ])
 
 const EXTRA_SYLLABLE_PATTERNS: readonly RegExp[] = [
@@ -94,6 +133,7 @@ const EXTRA_SYLLABLE_PATTERNS: readonly RegExp[] = [
 ]
 
 const SYLLABIC_L = /[bcdfgkpstz]l$/
+const SILENT_E_BEFORE_SUFFIX = /[^aeiouy]e(?=(?:ment|ly|ful|fully|less|ness)$)/
 const VOWEL_GROUPS = /[aeiouy]+/g
 const LEADING_CONSONANT_Y = /^y(?=[aeiou])/
 const SOFT_PLURAL_STEM = /(?:[sxzcg]|[cs]h)$/
@@ -195,8 +235,11 @@ export const extractProse = (markdown: string): string =>
     .map((block) => block.text)
     .join('\n\n')
 
-const isAbbreviation = (word: string, followingText: string): boolean =>
-  word === NUMBERED_ABBREVIATION ? NUMBER_REFERENCE.test(followingText) : ABBREVIATIONS.has(word)
+const isAbbreviation = (word: string, followingText: string): boolean => {
+  if (word === NUMBERED_ABBREVIATION) return NUMBER_REFERENCE.test(followingText)
+  if (CONTEXTUAL_ABBREVIATIONS.has(word)) return !STARTS_NEW_SENTENCE.test(followingText)
+  return ABBREVIATIONS.has(word)
+}
 
 const skipClosingQuotes = (text: string, from: number): number => {
   let index = from
@@ -262,7 +305,8 @@ const countLetterSyllables = (letters: string): number => {
   const irregular = IRREGULAR_SYLLABLES.get(letters)
   if (irregular !== undefined) return irregular
   const stem = stripSilentEnding(letters)
-  const baseGroups = countVowelGroups(stem.replace(LEADING_CONSONANT_Y, ''))
+  const base = stem.replace(SILENT_E_BEFORE_SUFFIX, (match) => match.slice(0, -1))
+  const baseGroups = countVowelGroups(base.replace(LEADING_CONSONANT_Y, ''))
   const syllabicL = stem !== letters && SYLLABIC_L.test(stem) ? 1 : 0
   const extra = EXTRA_SYLLABLE_PATTERNS.reduce((total, pattern) => total + countPatternMatches(letters, pattern), 0)
   return Math.max(1, baseGroups + syllabicL + extra)
@@ -323,7 +367,7 @@ const wordsPerSentence = (counts: Counts): number => counts.words / counts.sente
 
 const syllablesPerWord = (counts: Counts): number => counts.syllables / counts.words
 
-const GRADE_FORMULAS: Record<GradeFormula, (counts: Counts) => number> = {
+const GRADE_FORMULA_FUNCTIONS: Record<GradeFormula, (counts: Counts) => number> = {
   'flesch-kincaid': (counts) => 0.39 * wordsPerSentence(counts) + 11.8 * syllablesPerWord(counts) - 15.59,
   'gunning-fog': (counts) =>
     0.4 * (wordsPerSentence(counts) + 100 * (counts.polysyllables / counts.words)),
@@ -339,13 +383,10 @@ const GRADE_FORMULAS: Record<GradeFormula, (counts: Counts) => number> = {
 const fleschReadingEase = (counts: Counts): number =>
   206.835 - 1.015 * wordsPerSentence(counts) - 84.6 * syllablesPerWord(counts)
 
-const computeGrades = (counts: Counts): Record<GradeFormula, number> => ({
-  'flesch-kincaid': toGrade(GRADE_FORMULAS['flesch-kincaid'](counts)),
-  'gunning-fog': toGrade(GRADE_FORMULAS['gunning-fog'](counts)),
-  smog: toGrade(GRADE_FORMULAS.smog(counts)),
-  'coleman-liau': toGrade(GRADE_FORMULAS['coleman-liau'](counts)),
-  'automated-readability': toGrade(GRADE_FORMULAS['automated-readability'](counts)),
-})
+const computeGrades = (counts: Counts): Record<GradeFormula, number> =>
+  Object.fromEntries(
+    Object.entries(GRADE_FORMULA_FUNCTIONS).map(([formula, compute]) => [formula, toGrade(compute(counts))]),
+  ) as Record<GradeFormula, number>
 
 export const measureText = (markdown: string): StyleReading | null => {
   const stats = computeStats(extractBlocks(markdown))

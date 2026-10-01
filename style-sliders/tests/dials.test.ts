@@ -388,8 +388,8 @@ describe('composeTargetsSection', () => {
     expect(text).toContain('Total length: at most 300 words.')
     expect(text).toContain('Paragraphs: at most 60 words each. Each list item counts as its own paragraph.')
     expect(text).toContain('Sentences: at most 20 words each.')
-    expect(text).toContain('Grade level: 8 or lower on the Flesch-Kincaid scale. Use short sentences and short, common words.')
-    expect(text).toContain('Reading ease: a Flesch Reading Ease score of 60 or higher (higher is easier).')
+    expect(text).toContain('Grade level: 8 or lower on the Flesch-Kincaid scale. Use short sentences and words of one or two syllables.')
+    expect(text).toContain('Reading ease: a Flesch Reading Ease score of 60 or higher (higher is easier). Short sentences and short words raise it.')
   })
 
   test('leaves out dials that are off', () => {
@@ -401,6 +401,13 @@ describe('composeTargetsSection', () => {
     expect(text).not.toContain('Paragraphs')
   })
 
+  test('gives a hint that matches the chosen formula', () => {
+    const smog = composeTargetsSection({ ...withDials('gradeLevel'), gradeFormula: 'smog' }) ?? ''
+    expect(smog).toContain('Grade level: 8 or lower on the SMOG scale. Avoid words of three or more syllables.')
+    const ari = composeTargetsSection({ ...withDials('gradeLevel'), gradeFormula: 'automated-readability' }) ?? ''
+    expect(ari).toContain('on the ARI scale. Use short words.')
+  })
+
   test('uses the chosen formula and the set values', () => {
     const settings = setDialValue({ ...DEFAULT_SETTINGS, gradeFormula: 'gunning-fog' }, 'gradeLevel', 6)
     expect(composeTargetsSection(settings)).toContain('Grade level: 6 or lower on the Gunning Fog scale.')
@@ -408,8 +415,12 @@ describe('composeTargetsSection', () => {
 
   test('says what is counted, what must not be lost and what is out of scope', () => {
     const text = composeTargetsSection(withDials('totalWords')) ?? ''
+    expect(text).toContain('including headings, list items, bold labels and link text')
+    expect(text).not.toContain('Only prose is counted')
     expect(text).toContain('Code blocks, inline code, URLs and tables are not counted')
     expect(text).toContain('complete and exact')
+    expect(text).toContain('aim about 15 percent below each maximum')
+    expect(text).toContain('Do not mention the limits or your word count unless the person asks')
     expect(text).toContain('Never drop a fact the person needs')
     expect(text).toContain('give the most important part and offer to continue')
     expect(text).toContain('tool inputs, files, code or commit messages')
@@ -452,8 +463,15 @@ describe('composeTurnContext', () => {
     const settings = withDials('totalWords', 'gradeLevel')
     const text = composeTurnContext(settings, readingWith({ words: 412, grade: 9.4 })) ?? ''
     expect(text).toContain('Over: 412 words (limit 300); grade 9.4 (limit 8).')
-    expect(text).toContain('Write this reply tighter.')
+    expect(text).toContain('Use shorter sentences and plainer words. Aim to fit every limit this time.')
+    expect(text).not.toContain('Write this reply tighter.')
     expect(text).not.toContain('It fit every limit.')
+  })
+
+  test('closes a length breach without the score hint', () => {
+    const text = composeTurnContext(withDials('totalWords'), readingWith({ words: 412 })) ?? ''
+    expect(text).toContain('Over: 412 words (limit 300). Aim to fit every limit this time.')
+    expect(text).not.toContain('plainer words')
   })
 
   test('puts a broken reading ease limit under Under', () => {
@@ -466,12 +484,28 @@ describe('composeTurnContext', () => {
     expect(text).not.toContain('grade')
   })
 
-  test('adds the small sample note only when a grade or ease dial is on', () => {
+  test('explains a small sample only when a grade or ease dial is on', () => {
     const small = readingWith({ isSmallSample: true })
-    expect(composeTurnContext(withDials('gradeLevel'), small)).toContain('(small sample)')
-    expect(composeTurnContext(withDials('readingEase'), small)).toContain('(small sample)')
-    expect(composeTurnContext(withDials('totalWords'), small)).not.toContain('(small sample)')
-    expect(composeTurnContext(withDials('gradeLevel'), readingWith({}))).not.toContain('(small sample)')
+    const note = 'Your last reply was short, so its grade and reading ease are rough. Do not adjust for them.'
+    expect(composeTurnContext(withDials('gradeLevel'), small)).toContain(note)
+    expect(composeTurnContext(withDials('readingEase'), small)).toContain(note)
+    expect(composeTurnContext(withDials('totalWords'), small)).not.toContain(note)
+    expect(composeTurnContext(withDials('gradeLevel'), readingWith({}))).not.toContain(note)
+    expect(composeTurnContext(withDials('gradeLevel'), small)).not.toContain('(small sample)')
+  })
+
+  test('a small sample leaves score breaches out of the verdict but keeps length breaches', () => {
+    const small = readingWith({ isSmallSample: true, words: 400, grade: 20, ease: 5 })
+    const scoresOnly = composeTurnContext(withDials('gradeLevel', 'readingEase'), small) ?? ''
+    expect(scoresOnly).not.toContain('Over: grade')
+    expect(scoresOnly).not.toContain('Under: reading ease')
+    expect(scoresOnly).not.toContain('Aim to fit every limit this time.')
+    expect(scoresOnly).toContain('Do not adjust for them.')
+    const mixed = composeTurnContext(withDials('totalWords', 'gradeLevel'), small) ?? ''
+    expect(mixed).toContain('Over: 400 words (limit 300).')
+    expect(mixed).not.toContain('Over: 400 words (limit 300); grade')
+    expect(mixed).not.toContain('plainer words')
+    expect(mixed).toContain('Aim to fit every limit this time.')
   })
 })
 
@@ -489,9 +523,10 @@ describe('composeRevisionPrompt', () => {
     expect(text).not.toContain('Paragraphs')
   })
 
-  test('says to keep every fact and leave code unchanged', () => {
+  test('says to keep the needed facts and leave code unchanged', () => {
     const text = composeRevisionPrompt(withDials('totalWords'), readingWith({ words: 900 }))
-    expect(text).toContain('Keep every fact')
+    expect(text).toContain('Keep the facts I need. If they cannot all fit, keep the most important part and offer to continue.')
+    expect(text).not.toContain('Keep every fact')
     expect(text).toContain('Leave code')
     expect(text).toContain('unchanged')
   })
