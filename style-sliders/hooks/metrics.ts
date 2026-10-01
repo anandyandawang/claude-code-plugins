@@ -1,0 +1,359 @@
+import type { GradeFormula, StyleReading, TextStats } from '../types'
+
+export type ProseBlock = { kind: 'paragraph' | 'heading'; text: string }
+
+type Fence = { character: string; length: number }
+
+type BlockStats = {
+  kind: ProseBlock['kind']
+  words: number
+  syllables: number
+  letters: number
+  polysyllables: number
+  sentenceWordCounts: readonly number[]
+}
+
+type Counts = Pick<TextStats, 'words' | 'sentences' | 'syllables' | 'letters' | 'polysyllables'>
+
+const SMALL_SAMPLE_WORDS = 50
+const POLYSYLLABLE_MIN_SYLLABLES = 3
+const SHORT_WORD_LENGTH = 3
+const MAX_READING_EASE = 100
+
+const FENCE_LINE = /^\s*(`{3,}|~{3,})(.*)$/
+const HORIZONTAL_RULE = /^\s*([-*_])(?:\s*\1){2,}\s*$/
+const HEADING_LINE = /^\s{0,3}#{1,6}(?:\s+(.*))?$/
+const LIST_ITEM_LINE = /^\s*(?:[-*+]|\d{1,9}[.)])\s+(.*)$/
+const BLOCKQUOTE_PREFIX = /^\s*>\s?/
+const REFERENCE_DEFINITION = /^\s{0,3}\[[^\]]+\]:\s*\S+/
+const TASK_BOX = /^\[[ xX]\]\s+/
+const CLOSING_HASHES = /\s+#+\s*$/
+const WORD_PATTERN = /[\p{L}\p{N}]+(?:['’._-][\p{L}\p{N}]+)*/gu
+const TOKEN_PATTERN = /[\p{L}\p{N}]+(?:['’._-][\p{L}\p{N}]+)*|[.!?…]+/gu
+const TERMINATOR_START = /^[.!?…]/
+const CLOSING_QUOTES = /["'”’)\]»]/
+const WHITESPACE = /\s/
+const NUMBER_REFERENCE = /^\s*[#\d]/
+
+const ABBREVIATIONS: ReadonlySet<string> = new Set([
+  'e.g',
+  'i.e',
+  'etc',
+  'vs',
+  'mr',
+  'mrs',
+  'ms',
+  'dr',
+  'st',
+  'approx',
+  'cf',
+  'inc',
+  'ltd',
+  'jr',
+  'sr',
+  'u.s',
+  'u.s.a',
+])
+
+const NUMBERED_ABBREVIATION = 'no'
+
+const INLINE_RULES: readonly (readonly [RegExp, string])[] = [
+  [/<!--[\s\S]*?-->/g, ' '],
+  [/!\[[^\]]*\]\((?:[^()]|\([^()]*\))*\)/g, ' '],
+  [/(`+)[\s\S]*?\1/g, ' '],
+  [/\[([^\]]*)\]\((?:[^()]|\([^()]*\))*\)/g, '$1'],
+  [/\[([^\]]+)\]\[[^\]]*\]/g, '$1'],
+  [/\[\^[^\]]*\]/g, ''],
+  [/<\/?(?:br|p|div|li|ul|ol|tr|td|th|table|hr|h[1-6])(?:\s[^<>]*)?\/?>/gi, ' '],
+  [/<\/?[A-Za-z][A-Za-z0-9-]*(?:\s[^<>]*)?\/?>/g, ''],
+  [/&(?:[a-z]+|#\d+);/gi, ' '],
+  [/https?:\/\/[^\s<>]*[^\s<>.,;:!?)\]'"]/g, ' '],
+  [/~~/g, ''],
+  [/\*/g, ''],
+  [/(?<![\p{L}\p{N}])_+|_+(?![\p{L}\p{N}])/gu, ''],
+]
+
+const IRREGULAR_SYLLABLES: ReadonlyMap<string, number> = new Map([
+  ['area', 3],
+  ['idea', 3],
+  ['recipe', 3],
+  ['maybe', 2],
+  ['business', 2],
+  ['hundred', 2],
+  ['naked', 2],
+  ['sacred', 2],
+  ['wicked', 2],
+])
+
+const EXTRA_SYLLABLE_PATTERNS: readonly RegExp[] = [
+  /cre(?=at(?!ur))/g,
+  /(?<![cgstx])ia|(?<=[cgstx])ia(?![ln])/g,
+  /(?<![gq])ua/g,
+  /[aeiouy](?=ing$)/g,
+  /ism$/g,
+]
+
+const SYLLABIC_L = /[bcdfgkpstz]l$/
+const VOWEL_GROUPS = /[aeiouy]+/g
+const LEADING_CONSONANT_Y = /^y(?=[aeiou])/
+const SOFT_PLURAL_STEM = /(?:[sxzcg]|[cs]h)$/
+const SILENT_E_AFTER_GUTTURAL = /[gq]ue$/
+const SYLLABLE_PART_SEPARATOR = /[-_]/
+
+const isBlank = (line: string): boolean => line.trim() === ''
+
+const stripBlockquote = (line: string): string => {
+  let stripped = line
+  while (BLOCKQUOTE_PREFIX.test(stripped)) stripped = stripped.replace(BLOCKQUOTE_PREFIX, '')
+  return stripped
+}
+
+const openingFence = (line: string): Fence | null => {
+  const match = FENCE_LINE.exec(line)
+  const marker = match?.[1]
+  if (!marker) return null
+  const hasBacktickInInfo = marker.startsWith('`') && (match?.[2] ?? '').includes('`')
+  if (hasBacktickInInfo) return null
+  return { character: marker.charAt(0), length: marker.length }
+}
+
+const isClosingFence = (line: string, fence: Fence): boolean => {
+  const trimmed = line.trim()
+  return trimmed.length >= fence.length && trimmed === fence.character.repeat(trimmed.length)
+}
+
+const removeFencedCode = (lines: readonly string[]): string[] => {
+  const kept: string[] = []
+  let openFence: Fence | null = null
+  for (const line of lines) {
+    if (openFence) {
+      if (isClosingFence(line, openFence)) openFence = null
+      continue
+    }
+    openFence = openingFence(line)
+    kept.push(openFence ? '' : line)
+  }
+  return kept
+}
+
+const isTableLine = (line: string): boolean => {
+  const trimmed = line.trim()
+  if (trimmed.startsWith('|')) return true
+  return /^[\s|:-]+$/.test(trimmed) && trimmed.includes('-') && trimmed.includes('|')
+}
+
+const isIgnoredLine = (line: string): boolean =>
+  isTableLine(line) || HORIZONTAL_RULE.test(line) || REFERENCE_DEFINITION.test(line)
+
+const cleanInline = (text: string): string =>
+  INLINE_RULES.reduce((current, [pattern, replacement]) => current.replace(pattern, replacement), text)
+
+export const extractWords = (text: string): string[] => Array.from(text.matchAll(WORD_PATTERN), (match) => match[0])
+
+export const countWords = (text: string): number => extractWords(text).length
+
+const collectBlocks = (lines: readonly string[]): ProseBlock[] => {
+  const blocks: ProseBlock[] = []
+  let pending: string[] = []
+  const flushParagraph = () => {
+    if (pending.length > 0) blocks.push({ kind: 'paragraph', text: pending.join(' ') })
+    pending = []
+  }
+  for (const rawLine of lines) {
+    const line = stripBlockquote(rawLine)
+    if (isBlank(line) || isIgnoredLine(line)) {
+      flushParagraph()
+      continue
+    }
+    const heading = HEADING_LINE.exec(line)
+    if (heading) {
+      flushParagraph()
+      blocks.push({ kind: 'heading', text: (heading[1] ?? '').replace(CLOSING_HASHES, '') })
+      continue
+    }
+    const listItem = LIST_ITEM_LINE.exec(line)
+    if (listItem) {
+      flushParagraph()
+      pending = [(listItem[1] ?? '').replace(TASK_BOX, '')]
+      continue
+    }
+    pending.push(line.trim())
+  }
+  flushParagraph()
+  return blocks
+}
+
+export const extractBlocks = (markdown: string): ProseBlock[] => {
+  const lines = removeFencedCode(markdown.replace(/\r\n?/g, '\n').split('\n'))
+  return collectBlocks(lines)
+    .map((block) => ({ kind: block.kind, text: cleanInline(block.text).replace(/\s+/g, ' ').trim() }))
+    .filter((block) => countWords(block.text) > 0)
+}
+
+export const extractProse = (markdown: string): string =>
+  extractBlocks(markdown)
+    .map((block) => block.text)
+    .join('\n\n')
+
+const isAbbreviation = (word: string, followingText: string): boolean =>
+  word === NUMBERED_ABBREVIATION ? NUMBER_REFERENCE.test(followingText) : ABBREVIATIONS.has(word)
+
+const skipClosingQuotes = (text: string, from: number): number => {
+  let index = from
+  while (index < text.length && CLOSING_QUOTES.test(text.charAt(index))) index += 1
+  return index
+}
+
+const endsAtBoundary = (text: string, index: number): boolean =>
+  index >= text.length || WHITESPACE.test(text.charAt(index))
+
+export const splitSentences = (text: string): string[] => {
+  const sentences: string[] = []
+  let sentenceStart = 0
+  let previousWord: { lowered: string; end: number } | null = null
+  for (const token of text.matchAll(TOKEN_PATTERN)) {
+    const start = token.index ?? 0
+    const end = start + token[0].length
+    if (!TERMINATOR_START.test(token[0])) {
+      previousWord = { lowered: token[0].toLowerCase(), end }
+      continue
+    }
+    const sentenceEnd = skipClosingQuotes(text, end)
+    if (!endsAtBoundary(text, sentenceEnd)) continue
+    const followsAbbreviation =
+      token[0] === '.' &&
+      previousWord !== null &&
+      previousWord.end === start &&
+      isAbbreviation(previousWord.lowered, text.slice(sentenceEnd))
+    if (followsAbbreviation) continue
+    sentences.push(text.slice(sentenceStart, sentenceEnd))
+    sentenceStart = sentenceEnd
+  }
+  sentences.push(text.slice(sentenceStart))
+  return sentences.filter((sentence) => countWords(sentence) > 0)
+}
+
+const countVowelGroups = (letters: string): number => letters.match(VOWEL_GROUPS)?.length ?? 0
+
+const countPatternMatches = (letters: string, pattern: RegExp): number => letters.match(pattern)?.length ?? 0
+
+const stripPastTense = (letters: string): string => {
+  const stem = letters.slice(0, -2)
+  return /[td]$/.test(stem) ? letters : stem
+}
+
+const stripPlural = (letters: string): string => {
+  const stem = letters.slice(0, -2)
+  return SOFT_PLURAL_STEM.test(stem) ? letters : stem
+}
+
+const stripSilentE = (letters: string): string =>
+  letters.slice(0, SILENT_E_AFTER_GUTTURAL.test(letters) ? -2 : -1)
+
+const stripSilentEnding = (letters: string): string => {
+  if (letters.endsWith('ed')) return stripPastTense(letters)
+  if (letters.endsWith('es')) return stripPlural(letters)
+  if (letters.endsWith('e')) return stripSilentE(letters)
+  return letters
+}
+
+const countLetterSyllables = (letters: string): number => {
+  if (letters.length <= SHORT_WORD_LENGTH) return 1
+  const irregular = IRREGULAR_SYLLABLES.get(letters)
+  if (irregular !== undefined) return irregular
+  const stem = stripSilentEnding(letters)
+  const baseGroups = countVowelGroups(stem.replace(LEADING_CONSONANT_Y, ''))
+  const syllabicL = stem !== letters && SYLLABIC_L.test(stem) ? 1 : 0
+  const extra = EXTRA_SYLLABLE_PATTERNS.reduce((total, pattern) => total + countPatternMatches(letters, pattern), 0)
+  return Math.max(1, baseGroups + syllabicL + extra)
+}
+
+const toPlainLetters = (text: string): string =>
+  text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[^a-z]/g, '')
+
+export const countSyllables = (word: string): number => {
+  if (toPlainLetters(word) === '') return 1
+  return word
+    .split(SYLLABLE_PART_SEPARATOR)
+    .reduce((total, part) => total + countLetterSyllables(toPlainLetters(part)), 0)
+}
+
+const countLetters = (word: string): number => Array.from(word.replace(/[^\p{L}\p{N}]/gu, '')).length
+
+const describeBlock = (block: ProseBlock): BlockStats => {
+  const words = extractWords(block.text)
+  const syllableCounts = words.map(countSyllables)
+  return {
+    kind: block.kind,
+    words: words.length,
+    syllables: syllableCounts.reduce((total, count) => total + count, 0),
+    letters: words.reduce((total, word) => total + countLetters(word), 0),
+    polysyllables: syllableCounts.filter((count) => count >= POLYSYLLABLE_MIN_SYLLABLES).length,
+    sentenceWordCounts: splitSentences(block.text).map(countWords),
+  }
+}
+
+const sum = (values: readonly number[]): number => values.reduce((total, value) => total + value, 0)
+
+export const computeStats = (blocks: readonly ProseBlock[]): TextStats => {
+  const described = blocks.map(describeBlock)
+  const paragraphs = described.filter((block) => block.kind === 'paragraph')
+  return {
+    words: sum(described.map((block) => block.words)),
+    sentences: sum(described.map((block) => block.sentenceWordCounts.length)),
+    paragraphs: paragraphs.length,
+    syllables: sum(described.map((block) => block.syllables)),
+    letters: sum(described.map((block) => block.letters)),
+    polysyllables: sum(described.map((block) => block.polysyllables)),
+    longestParagraphWords: Math.max(0, ...paragraphs.map((block) => block.words)),
+    longestSentenceWords: Math.max(0, ...described.flatMap((block) => block.sentenceWordCounts)),
+  }
+}
+
+const round1 = (value: number): number => Math.round(value * 10) / 10
+
+const toGrade = (value: number): number => round1(Math.max(0, value))
+
+const toReadingEase = (value: number): number => round1(Math.min(MAX_READING_EASE, Math.max(0, value)))
+
+const wordsPerSentence = (counts: Counts): number => counts.words / counts.sentences
+
+const syllablesPerWord = (counts: Counts): number => counts.syllables / counts.words
+
+const GRADE_FORMULAS: Record<GradeFormula, (counts: Counts) => number> = {
+  'flesch-kincaid': (counts) => 0.39 * wordsPerSentence(counts) + 11.8 * syllablesPerWord(counts) - 15.59,
+  'gunning-fog': (counts) =>
+    0.4 * (wordsPerSentence(counts) + 100 * (counts.polysyllables / counts.words)),
+  smog: (counts) => 1.043 * Math.sqrt(counts.polysyllables * (30 / counts.sentences)) + 3.1291,
+  'coleman-liau': (counts) =>
+    0.0588 * ((100 * counts.letters) / counts.words) -
+    0.296 * ((100 * counts.sentences) / counts.words) -
+    15.8,
+  'automated-readability': (counts) =>
+    4.71 * (counts.letters / counts.words) + 0.5 * wordsPerSentence(counts) - 21.43,
+}
+
+const fleschReadingEase = (counts: Counts): number =>
+  206.835 - 1.015 * wordsPerSentence(counts) - 84.6 * syllablesPerWord(counts)
+
+const computeGrades = (counts: Counts): Record<GradeFormula, number> => ({
+  'flesch-kincaid': toGrade(GRADE_FORMULAS['flesch-kincaid'](counts)),
+  'gunning-fog': toGrade(GRADE_FORMULAS['gunning-fog'](counts)),
+  smog: toGrade(GRADE_FORMULAS.smog(counts)),
+  'coleman-liau': toGrade(GRADE_FORMULAS['coleman-liau'](counts)),
+  'automated-readability': toGrade(GRADE_FORMULAS['automated-readability'](counts)),
+})
+
+export const measureText = (markdown: string): StyleReading | null => {
+  const stats = computeStats(extractBlocks(markdown))
+  if (stats.words === 0) return null
+  return {
+    stats,
+    grades: computeGrades(stats),
+    readingEase: toReadingEase(fleschReadingEase(stats)),
+    isSmallSample: stats.words < SMALL_SAMPLE_WORDS,
+  }
+}
