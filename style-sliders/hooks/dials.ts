@@ -254,7 +254,7 @@ const measuredPhrase = (id: DialId, measured: number): string => {
   return `reading ease ${formatDecimal(measured)}`
 }
 
-const breachPhrase = (breach: Breach): string =>
+export const breachPhrase = (breach: Breach): string =>
   `${measuredPhrase(breach.dial, breach.measured)} (limit ${breach.limit})`
 
 const statusTag = (spec: DialSpec, settings: StyleSettings): string => {
