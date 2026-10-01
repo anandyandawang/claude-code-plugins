@@ -1,0 +1,10 @@
+{
+  "name": "tree",
+  "version": "0.1.0",
+  "description": "Pi-style session tree: see every branch of the conversation in a pane and jump back to any earlier turn, or to an old branch, and keep going from there.",
+  "author": {
+    "name": "anandyandawang",
+    "url": "https://github.com/anandyandawang"
+  },
+  "types": "./types/index.d.ts"
+}
