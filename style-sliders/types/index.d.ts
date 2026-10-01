@@ -1,5 +1,6 @@
 export type DialId =
   | 'totalWords'
+  | 'readTime'
   | 'paragraphWords'
   | 'sentenceWords'
   | 'gradeLevel'
@@ -28,12 +29,15 @@ export type TextStats = {
   polysyllables: number
   longestParagraphWords: number
   longestSentenceWords: number
+  codeWords: number
+  tableWords: number
 }
 
 export type StyleReading = {
   stats: TextStats
   grades: Record<GradeFormula, number>
   readingEase: number
+  readSeconds: number
   isSmallSample: boolean
 }
 
