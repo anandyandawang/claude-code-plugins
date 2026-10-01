@@ -29,7 +29,7 @@ import {
 import type { Breach, SlidersCommand } from './dials'
 import { measureText } from './metrics'
 
-type Engine = Pick<EngineInterface, 'state' | 'store' | 'ui' | 'prompt'>
+type Engine = Pick<EngineInterface, 'state' | 'store' | 'ui' | 'prompt' | 'session'>
 
 const PANE_ID = 'style-sliders'
 const STORE_KEY = 'settings'
@@ -47,6 +47,9 @@ const FIXED_ROW_WIDTH =
 const MIN_BAR_WIDTH = 6
 const MAX_BAR_WIDTH = 24
 const PANE_COLUMNS = FIXED_ROW_WIDTH + MIN_BAR_WIDTH + 8
+
+const PANE_MISSING_HINT =
+  'If you do not see the pane, use commands instead, for example /sliders words 150. Type /sliders help for every command.'
 
 const PASS_MARK = ' ✓'
 const FAIL_MARK = ' ✗'
@@ -106,6 +109,16 @@ const confirmationFor = (command: SlidersCommand, changed: StyleSettings): strin
   return 'Sliders updated.'
 }
 
+const describeScreens = (surfaces: readonly string[]): string =>
+  surfaces.length === 0 ? 'no screen in this session can draw it' : `drawn on: ${surfaces.join(', ')}`
+
+const openedHeadline = async ($: Engine): Promise<string> => {
+  const surfaces = await $.session.surfaces().catch(() => null)
+  return surfaces === null
+    ? 'Output style sliders opened.'
+    : `Output style sliders opened (${describeScreens(surfaces)}).`
+}
+
 const openPane = async ($: Engine): Promise<string> => {
   const opened = await $.ui.open({
     id: PANE_ID,
@@ -115,9 +128,11 @@ const openPane = async ($: Engine): Promise<string> => {
     rows: PANE_ROWS,
     columns: PANE_COLUMNS,
   })
-  return opened.isPlaced
-    ? 'Output style sliders opened.'
+  const headline = opened.isPlaced
+    ? await openedHeadline($)
     : `Output style sliders are open but not drawn yet: ${opened.reason}`
+  const summary = describeSettings(await read($, settings), await read($, last))
+  return [headline, PANE_MISSING_HINT, '', summary].join('\n')
 }
 
 const runSlidersCommand = async ($: Engine, args: string): Promise<{ text: string }> => {

@@ -70,6 +70,7 @@ const buildWorld = (on: On, entries: Record<string, unknown> = {}): World => {
     world.opened.push({ id: e.id, focus: e.focus, rows: e.rows, columns: e.columns })
     return { value: { isPlaced: true } }
   })
+  on('session.surfaces', () => ({ value: ['desktop'] }))
   on('ui.close', (_, e) => {
     world.closed.push(e.id)
     return { value: undefined }
@@ -544,7 +545,9 @@ describe('sliders command', () => {
     const world = buildWorld(on)
     const result = await runSliders($, '')
 
-    expect(result.text).toBe('Output style sliders opened.')
+    expect(result.text).toContain('Output style sliders opened (drawn on: desktop).')
+    expect(result.text).toContain('If you do not see the pane, use commands instead')
+    expect(result.text).toContain('Grade formula: Flesch-Kincaid')
     expect(world.opened).toEqual([{ id: PANE_ID, focus: true, rows: 18, columns: 65 }])
   })
 })
